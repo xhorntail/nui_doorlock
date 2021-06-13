@@ -1,13 +1,16 @@
-ESX = nil
+QBCore = nil
+
+TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
+
 local doorInfo = {}
 
 Citizen.CreateThread(function()
-	local xPlayers = #ESX.GetPlayers()
+	local xPlayers = QBCore.Functions.GetPlayers()
 	local path = GetResourcePath(GetCurrentResourceName())
 	path = path:gsub('//', '/')..'/server/states.json'
 	local file = io.open(path, 'r')
 	if not file or xPlayers == 0 then
-		file = io.open(path, 'w+')
+		file = io.open(path, 'a')
 		for k,v in pairs(Config.DoorList) do
 			doorInfo[k] = v.locked
 		end
@@ -38,29 +41,27 @@ AddEventHandler('onResourceStop', function(resourceName)
 	end
 end)
 
-TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-
-RegisterServerEvent('nui_doorlock:updateState')
-AddEventHandler('nui_doorlock:updateState', function(doorID, locked, src, usedLockpick)
+RegisterServerEvent('nui_doorlock:server:updateState')
+AddEventHandler('nui_doorlock:server:updateState', function(doorID, locked, src, usedLockpick, isBank)
 	local playerId = source
-	local xPlayer = ESX.GetPlayerFromId(playerId)
+	local xPlayer = QBCore.Functions.GetPlayer(playerId)
 
 	if type(doorID) ~= 'number' then
-		print(('nui_doorlock: %s (%s) didn\'t send a number! (Sent %s)'):format(xPlayer.getName(), xPlayer.identifier, doorID))
+		print(('nui_doorlock: %s (%s) didn\'t send a number! (Sent %s)'):format(xPlayer.PlayerData.name, xPlayer.PlayerData.license, doorID))
 		return
 	end
 
 	if type(locked) ~= 'boolean' then
-		print(('nui_doorlock: %s (%s) attempted to update invalid state! (Sent %s)'):format(xPlayer.getName(), xPlayer.identifier, locked))
+		print(('nui_doorlock: %s (%s) attempted to update invalid state! (Sent %s)'):format(xPlayer.PlayerData.name, xPlayer.PlayerData.license, locked))
 		return
 	end
 
 	if not Config.DoorList[doorID] then
-		print(('nui_doorlock: %s (%s) attempted to update invalid door! (Sent %s)'):format(xPlayer.getName(), xPlayer.identifier, doorID))
+		print(('nui_doorlock: %s (%s) attempted to update invalid door! (Sent %s)'):format(xPlayer.PlayerData.name, xPlayer.PlayerData.license, doorID))
 		return
 	end
 	
-	if not IsAuthorized(xPlayer, Config.DoorList[doorID], doorInfo[doorID], usedLockpick) then
+	if not IsAuthorized(xPlayer, Config.DoorList[doorID], doorInfo[doorID], usedLockpick, isBank) then
 		return
 	end
 
@@ -77,68 +78,67 @@ AddEventHandler('nui_doorlock:updateState', function(doorID, locked, src, usedLo
 	end
 end)
 
-ESX.RegisterServerCallback('nui_doorlock:getDoorInfo', function(source, cb)
+QBCore.Functions.CreateCallback('nui_doorlock:getDoorInfo', function(source, cb)
 	cb(doorInfo)
 end)
 
-function IsAuthorized(xPlayer, doorID, locked, usedLockpick)
+function IsAuthorized(xPlayer, doorID, locked, usedLockpick, isBank)
 	local jobName, grade = {}, {}
-	jobName[1] = xPlayer.job.name
-	grade[1] = xPlayer.job.grade
-	if xPlayer.job2 then
-		jobName[2] = xPlayer.job2.name
-		grade[2] = xPlayer.job2.grade
-	end
+	jobName[1] = xPlayer.PlayerData.job.name
+	--grade[1] = xPlayer.PlayerData.job.grade.level
 	local canOpen = false
 	if doorID.lockpick and usedLockpick then
-		count = xPlayer.getInventoryItem('lockpick').count
-		if count and count >= 1 then canOpen = true end
+ 		canOpen = true
+	end
+
+	if isBank then
+		canOpen = true
 	end
 
 	if not canOpen and doorID.authorizedJobs then
 		for job,rank in pairs(doorID.authorizedJobs) do
-			if (job == jobName[1] and rank <= grade[1]) or (jobName[2] and job == jobName[2] and rank <= grade[2]) then
+			if (job == jobName[1] --[[ rank <= grade[1]) or (jobName[2] and job == jobName[2] and rank <= grade[2]--]]) then
 				canOpen = true
 				if canOpen then break end
 			end
 		end
+		if not canOpen and not doorID.items then
+			print(('nui_doorlock: %s (%s) was not authorized to open a locked door!'):format(xPlayer.PlayerData.name, xPlayer.PlayerData.license))
+		end
 	end
 
 	if not canOpen and doorID.items then
-		local count
-		for k,v in pairs(doorID.items) do
-			count = xPlayer.getInventoryItem(v).count
-			if count and count >= 1 then
-				canOpen = true
-				local consumables = { ['ticket']=1 }
-				if locked and consumables[v] then
-					xPlayer.removeInventoryItem(v, 1)
-				end
-				break
-			end
-		end
-		if not count or count < 1 then canOpen = false end
-	end
-
-	if not canOpen then
-		local group = xPlayer.getGroup()
-		if group == 'admin' or group == 'superadmin' then
-			print(group..' '..xPlayer.getName()..' was authorised to use a door')
-			canOpen = true
-		end
-	end
-
-	return canOpen
+        local count = false
+        for k,v in pairs(doorID.items) do
+            --print(v)
+            if xPlayer.Functions.GetItemByName(v) ~= nil then
+            count = true
+            else
+                count = false
+            end
+            if count then
+                canOpen = true
+                local consumables = { ['ticket']=1 }
+                if locked and consumables[v] then
+                    xPlayer.Functions.RemoveItem(v, 1)
+                end
+                break
+                
+            end
+        end
+        if not count then canOpen = false end
+    end
+    return canOpen
 end
 
-RegisterCommand('newdoor', function(playerId, args, rawCommand)
-	TriggerClientEvent('nui_doorlock:newDoorSetup', playerId, args)
-end, true)
+QBCore.Commands.Add('newdoor', "Create a new door", {{name="doortype", help="door, sliding, garage, double, doublesliding"}, {name="locked", help="true/false"}, {name="jobs", help="You can add upto 4 jobs in here, seperate with spaces"}}, true, function(source, args)
+	TriggerClientEvent('nui_doorlock:newDoorSetup', source, args)
+end, "admin")
 
 RegisterServerEvent('nui_doorlock:newDoorCreate')
-AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, doubleDoor, doorname)
-	xPlayer = ESX.GetPlayerFromId(source)
-	if not IsPlayerAceAllowed(source, 'command.newdoor') then print(xPlayer.getName().. 'attempted to create a new door but does not have permission') return end
+AddEventHandler('nui_doorlock:newDoorCreate', function(model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, doubleDoor, doorname)
+	local xPlayer = QBCore.Functions.GetPlayer(source)
+	if not QBCore.Functions.HasPermission(source, "god") then print(xPlayer.PlayerData.name.. 'attempted to create a new door but does not have permission') return end
 	doorLocked = tostring(doorLocked)
 	slides = tostring(slides)
 	garage = tostring(garage)
@@ -168,16 +168,10 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
 		newDoor.audioRemote = false
 		newDoor.lockpick = false
 	local path = GetResourcePath(GetCurrentResourceName())
-	
-	if config ~= '' then
-		path = path:gsub('//', '/')..'/configs/'..string.gsub(config, ".lua", "")..'.lua'
-	else
-		path = path:gsub('//', '/')..'/config.lua'
-	end
-
+	path = path:gsub('//', '/')..'/config.lua'
 
 	file = io.open(path, 'a+')
-	if not doorname then label = '\n\n-- UNNAMED DOOR CREATED BY '..xPlayer.getName()..'\ntable.insert(Config.DoorList, {'
+	if not doorname then label = '\n\n-- UNNAMED DOOR CREATED BY '..xPlayer.PlayerData.name..'\ntable.insert(Config.DoorList, {'
 	else
 		label = '\n\n-- '..doorname.. '\ntable.insert(Config.DoorList, {'
 	end
@@ -220,43 +214,4 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
 	Config.DoorList[doorID] = newDoor
 	doorInfo[doorID] = doorLocked 
 	TriggerClientEvent('nui_doorlock:newDoorAdded', -1, newDoor, doorID, doorLocked)
-end)
-
-
-
--- Test command that causes all doors to change state
---[[RegisterCommand('testdoors', function(playerId, args, rawCommand)
-	for k, v in pairs(doorInfo) do
-		if v == true then lock = false else lock = true end
-		doorInfo[k] = lock
-		TriggerClientEvent('nui_doorlock:setState', -1, k, lock)
-	end
-end, true)
---]]
-
-
--- VERSION CHECK
-CreateThread(function()
-    local resourceName = GetCurrentResourceName()
-    local currentVersion, latestVersion = GetResourceMetadata(resourceName, 'version')
-    local outdated = '^6[%s]^3 Version ^2%s^3 is available! You are using version ^1%s^7'
-    Citizen.Wait(2000)
-    while Config.CheckVersion do
-        Citizen.Wait(0)
-        PerformHttpRequest(GetResourceMetadata(resourceName, 'versioncheck'), function (errorCode, resultData, resultHeaders)
-            if errorCode ~= 200 then print("Returned error code:" .. tostring(errorCode)) else
-                local data, version = tostring(resultData)
-                for line in data:gmatch("([^\n]*)\n?") do
-                    if line:find('^version') then version = line:sub(10, (line:len(line) - 1)) break end
-                end         
-                latestVersion = version
-            end
-        end)
-        if latestVersion then 
-            if currentVersion ~= latestVersion then
-                print(outdated:format(resourceName, latestVersion, currentVersion))
-            end
-            Citizen.Wait(60000*Config.CheckVersionDelay)
-        end
-    end
 end)
