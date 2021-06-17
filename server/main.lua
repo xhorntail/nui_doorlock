@@ -1,16 +1,13 @@
 QBCore = nil
-
-TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
-
 local doorInfo = {}
 
 Citizen.CreateThread(function()
-	local xPlayers = QBCore.Functions.GetPlayers()
+	local xPlayers = #QBCore.Functions.GetPlayers()
 	local path = GetResourcePath(GetCurrentResourceName())
 	path = path:gsub('//', '/')..'/server/states.json'
 	local file = io.open(path, 'r')
 	if not file or xPlayers == 0 then
-		file = io.open(path, 'a')
+		file = io.open(path, 'w+')
 		for k,v in pairs(Config.DoorList) do
 			doorInfo[k] = v.locked
 		end
@@ -41,8 +38,10 @@ AddEventHandler('onResourceStop', function(resourceName)
 	end
 end)
 
-RegisterServerEvent('nui_doorlock:server:updateState')
-AddEventHandler('nui_doorlock:server:updateState', function(doorID, locked, src, usedLockpick, isBank)
+TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
+
+RegisterServerEvent('nui_doorlock:updateState')
+AddEventHandler('nui_doorlock:updateState', function(doorID, locked, src, usedLockpick)
 	local playerId = source
 	local xPlayer = QBCore.Functions.GetPlayer(playerId)
 
@@ -61,7 +60,7 @@ AddEventHandler('nui_doorlock:server:updateState', function(doorID, locked, src,
 		return
 	end
 	
-	if not IsAuthorized(xPlayer, Config.DoorList[doorID], doorInfo[doorID], usedLockpick, isBank) then
+	if not IsAuthorized(xPlayer, Config.DoorList[doorID], doorInfo[doorID], usedLockpick) then
 		return
 	end
 
@@ -82,17 +81,17 @@ QBCore.Functions.CreateCallback('nui_doorlock:getDoorInfo', function(source, cb)
 	cb(doorInfo)
 end)
 
-function IsAuthorized(xPlayer, doorID, locked, usedLockpick, isBank)
+function IsAuthorized(xPlayer, doorID, locked, usedLockpick)
 	local jobName, grade = {}, {}
 	jobName[1] = xPlayer.PlayerData.job.name
-	--grade[1] = xPlayer.PlayerData.job.grade.level
+	--grade[1] = xPlayer.job.grade
+	--[[if xPlayer.job2 then
+		jobName[2] = xPlayer.job2.name
+		grade[2] = xPlayer.job2.grade
+	end]]
 	local canOpen = false
 	if doorID.lockpick and usedLockpick then
  		canOpen = true
-	end
-
-	if isBank then
-		canOpen = true
 	end
 
 	if not canOpen and doorID.authorizedJobs then
@@ -110,7 +109,6 @@ function IsAuthorized(xPlayer, doorID, locked, usedLockpick, isBank)
 	if not canOpen and doorID.items then
         local count = false
         for k,v in pairs(doorID.items) do
-            --print(v)
             if xPlayer.Functions.GetItemByName(v) ~= nil then
             count = true
             else
@@ -131,13 +129,13 @@ function IsAuthorized(xPlayer, doorID, locked, usedLockpick, isBank)
     return canOpen
 end
 
-QBCore.Commands.Add('newdoor', "Create a new door", {{name="doortype", help="door, sliding, garage, double, doublesliding"}, {name="locked", help="true/false"}, {name="jobs", help="You can add upto 4 jobs in here, seperate with spaces"}}, true, function(source, args)
-	TriggerClientEvent('nui_doorlock:newDoorSetup', source, args)
-end, "admin")
+RegisterCommand('newdoor', function(playerId, args, rawCommand)
+	TriggerClientEvent('nui_doorlock:newDoorSetup', playerId, args)
+end, true)
 
 RegisterServerEvent('nui_doorlock:newDoorCreate')
-AddEventHandler('nui_doorlock:newDoorCreate', function(model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, doubleDoor, doorname)
-	local xPlayer = QBCore.Functions.GetPlayer(source)
+AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, doubleDoor, doorname)
+	xPlayer = QBCore.Functions.GetPlayer(source)
 	if not QBCore.Functions.HasPermission(source, "god") then print(xPlayer.PlayerData.name.. 'attempted to create a new door but does not have permission') return end
 	doorLocked = tostring(doorLocked)
 	slides = tostring(slides)
@@ -168,7 +166,13 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(model, heading, coords, j
 		newDoor.audioRemote = false
 		newDoor.lockpick = false
 	local path = GetResourcePath(GetCurrentResourceName())
-	path = path:gsub('//', '/')..'/config.lua'
+	
+	if config ~= '' then
+		path = path:gsub('//', '/')..'/configs/'..string.gsub(config, ".lua", "")..'.lua'
+	else
+		path = path:gsub('//', '/')..'/config.lua'
+	end
+
 
 	file = io.open(path, 'a+')
 	if not doorname then label = '\n\n-- UNNAMED DOOR CREATED BY '..xPlayer.PlayerData.name..'\ntable.insert(Config.DoorList, {'
@@ -215,3 +219,13 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(model, heading, coords, j
 	doorInfo[doorID] = doorLocked 
 	TriggerClientEvent('nui_doorlock:newDoorAdded', -1, newDoor, doorID, doorLocked)
 end)
+
+-- Test command that causes all doors to change state
+--[[RegisterCommand('testdoors', function(playerId, args, rawCommand)
+	for k, v in pairs(doorInfo) do
+		if v == true then lock = false else lock = true end
+		doorInfo[k] = lock
+		TriggerClientEvent('nui_doorlock:setState', -1, k, lock)
+	end
+end, true)
+--]]
