@@ -84,10 +84,10 @@ end)
 function IsAuthorized(xPlayer, doorID, locked, usedLockpick)
 	local jobName, grade = {}, {}
 	jobName[1] = xPlayer.PlayerData.job.name
-	grade[1] = xPlayer.job.grade
+	grade[1] = xPlayer.PlayerData.job.grade.level
 	if xPlayer.job2 then
 		jobName[2] = xPlayer.job2.name
-		grade[2] = xPlayer.job2.grade
+		grade[2] = xPlayer.PlayerData.job2.grade.level
 	end
 	local canOpen = false
 	if doorID.lockpick and usedLockpick then
