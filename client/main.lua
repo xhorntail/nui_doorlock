@@ -21,6 +21,12 @@ Citizen.CreateThread(function()
 	updateDoors()
 	playerNotActive = nil
 	retrievedData = nil
+	PlayerJob = QBCore.Functions.GetPlayerData().job
+end)
+
+RegisterNetEvent('QBCore:Client:OnJobUpdate')
+AddEventHandler('QBCore:Client:OnJobUpdate', function(job)
+	PlayerJob = job
 end)
 
 -- Sync a door with the server
