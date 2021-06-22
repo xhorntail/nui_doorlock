@@ -489,6 +489,7 @@ AddEventHandler('nui_doorlock:newDoorSetup', function(args)
 	if not validTypes[doorType] then print(doorType.. ' is not a valid doortype') return end
 	if arg and arg.item == '' and arg.job1 == '' then print('You must enter either a job or item for lock authorisation') return end
 	if args[7] then print('You can only set four authorised jobs - if you want more, add them to the config later') return end
+	if arg then configname = arg.configname else configname = '' end
 	if doorType == 'door' or doorType == 'sliding' or doorType == 'garage' then
 		local entity, coords, heading, model = nil, nil, nil, nil
 		local result = false
@@ -530,7 +531,7 @@ AddEventHandler('nui_doorlock:newDoorSetup', function(args)
 		heading = GetEntityHeading(entity)
 		RemoveDoorFromSystem(doorHash)
 		if arg then doorname = arg.doorname end
-		TriggerServerEvent('nui_doorlock:newDoorCreate', arg.configname, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, false, doorname)
+		TriggerServerEvent('nui_doorlock:newDoorCreate', configname, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, false, doorname)
 		print('Successfully sent door data to the server')
 	elseif doorType == 'double' or doorType == 'doublesliding' then
 		local entity, coords, heading, model = {}, {}, {}, {}
@@ -592,7 +593,6 @@ AddEventHandler('nui_doorlock:newDoorSetup', function(args)
 			RemoveDoorFromSystem(doorHash[i])
 		end
 		if arg then doorname = arg.doorname end
-		if arg then configname = arg.configname else configname = '' end
 		TriggerServerEvent('nui_doorlock:newDoorCreate', configname, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, true, doorname)
 		print('Successfully sent door data to the server')
 		arg = nil
