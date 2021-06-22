@@ -132,13 +132,13 @@ local last_x, last_y, lasttext, isDrawing
 function Draw3dNUI(coords, text)
 	local paused = false
 	if IsPauseMenuActive() then paused = true end
-	local onScreen,_x,_y = GetScreenCoordFromWorldCoord(coords.x,coords.y,coords.z)
+	--[[local onScreen,_x,_y = GetScreenCoordFromWorldCoord(coords.x,coords.y,coords.z)
 	if _x ~= last_x or _y ~= last_y or text ~= lasttext or paused then
-		isDrawing = true
-		if paused then SendNUIMessage ({type = "hide"}) else SendNUIMessage({type = "display", x = _x, y = _y, text = text}) end
 		last_x, last_y, lasttext = _x, _y, text
 		Citizen.Wait(0)
-	end
+	end]]
+	isDrawing = true
+	if paused then SendNUIMessage ({type = "hide"}) else SendNUIMessage({type = "display", text = text}) end
 end
 
 function Draw3dText(coords, text) -- You can revert to text if you want - it has higher average performance cost but lower spikes
