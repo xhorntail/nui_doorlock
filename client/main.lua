@@ -21,6 +21,12 @@ Citizen.CreateThread(function()
 	updateDoors()
 	playerNotActive = nil
 	retrievedData = nil
+	PlayerJob = QBCore.Functions.GetPlayerData().job
+end)
+
+RegisterNetEvent('QBCore:Client:OnJobUpdate')
+AddEventHandler('QBCore:Client:OnJobUpdate', function(job)
+	PlayerJob = job
 end)
 
 -- Sync a door with the server
@@ -339,10 +345,14 @@ Citizen.CreateThread(function()
 					local doorState = DoorSystemGetDoorState(closestV.doorHash)
 					if closestV.locked and doorState ~= 1 then
 						Draw3dNUI(closestV.textCoords, 'Locking')
-					elseif not closestV.locked then
+					elseif not closestV.locked and not CheckAuth(closestV) then
 						if Config.ShowUnlockedText then Draw3dNUI(closestV.textCoords, 'Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
-					else
+					elseif not closestV.locked and CheckAuth(closestV) then
+						if Config.ShowUnlockedText then Draw3dNUI(closestV.textCoords, '[E] - Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
+					elseif closestV.locked and not CheckAuth(closestV) then
 						Draw3dNUI(closestV.textCoords, 'Locked')
+					elseif closestV.locked and CheckAuth(closestV) then
+						Draw3dNUI(closestV.textCoords, '[E] - Locked')
 					end
 				else
 					local door = {}
@@ -354,10 +364,14 @@ Citizen.CreateThread(function()
 					
 					if closestV.locked and (state[1] ~= 1 or state[2] ~= 1) then
 						Draw3dNUI(closestV.textCoords, 'Locking')
-					elseif not closestV.locked then
+					elseif not closestV.locked and not CheckAuth(closestV) then
 						if Config.ShowUnlockedText then Draw3dNUI(closestV.textCoords, 'Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
-					else
+					elseif not closestV.locked and CheckAuth(closestV) then
+						if Config.ShowUnlockedText then Draw3dNUI(closestV.textCoords, '[E] - Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
+					elseif closestV.locked and not CheckAuth(closestV) then
 						Draw3dNUI(closestV.textCoords, 'Locked')
+					elseif closestV.locked and CheckAuth(closestV) then
+						Draw3dNUI(closestV.textCoords, '[E] - Locked')
 					end
 				end
 			else
@@ -371,6 +385,23 @@ Citizen.CreateThread(function()
 		if doorCount == 0 then doorSleep = 1000 Citizen.Wait(1000) end
 	end
 end)
+
+function CheckAuth(doorID)
+	local canOpen = false
+
+	if doorID.authorizedJobs then
+		for job,rank in pairs(doorID.authorizedJobs) do
+			if (job == PlayerJob.name) then
+				canOpen = true
+				break
+			end
+		end
+	else
+		canOpen = true
+	end
+
+    return canOpen
+end
 
 exports('updateDoors', updateDoors)
 -- Use this export if doors do not load after a teleport event (such as /tp, /setcoords, /jail, etc)

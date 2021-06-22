@@ -16,46 +16,34 @@ const formInfo = {
     item: document.getElementById('item'),
 }
 
-window.addEventListener('message', ({data}) => {
-    if(data.type == "newDoorSetup") {
+window.addEventListener('message', ({ data }) => {
+    if (data.type == "newDoorSetup") {
         data.enable ? formContainer.style.display = "flex" : formContainer.style.display = "none";
         data.enable ? doorlockContainer.style.display = "none" : doorlockContainer.style.display = "block";
     }
 
-    if(data.type == "audio") {
-        var volume = (data.audio['volume'] / 10 ) * data.sfx
+    if (data.type == "audio") {
+        var volume = (data.audio['volume'] / 10) * data.sfx
         if (data.distance !== 0) {
             var volume = volume / data.distance
         }
         sound.setAttribute('src', 'sounds/' + data.audio['file']);
         sound.volume = volume;
-		sound.play();
+        sound.play();
     }
 
-    if(data.type == "display") {
-        if(data.text == undefined) {
+    if (data.type == "display") {
+        if (data.text == undefined) {
             doorlock.innerHTML = '';
             doorlock.style.display = 'none';
         } else {
             doorlockContainer.style.display = 'block';
             doorlock.style.display = 'block';
-            if (data.text == "Locked") {
-                doorlock.innerHTML = '<i style="color:orange" class="fas fa-lock"></i>';
-            } else if (data.text == "Unlocked") {
-                doorlock.innerHTML = '<i style="color:limegreen" class="fas fa-unlock"></i>';
-            } else if (data.text == "Locking") {
-                doorlock.innerHTML = '<i style="color:orange" class="fas fa-lock"><br>Locking</i>';
-            }
-    
-            let x = (data.x * 100) + '%';
-            let y = (data.y * 100) + '%';
-
-            doorlock.style.left = x;
-            doorlock.style.top = y;
+            doorlock.innerHTML = data.text;
         }
     }
 
-    if(data.type == "hide") {
+    if (data.type == "hide") {
         doorlock.innerHTML = '';
         doorlock.style.display = 'none';
     }
