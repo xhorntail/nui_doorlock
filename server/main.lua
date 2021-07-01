@@ -129,10 +129,10 @@ function IsAuthorized(xPlayer, doorID, locked, usedLockpick)
     return canOpen
 end
 
-RegisterCommand('newdoor', function(playerId, args, rawCommand)
-	TriggerClientEvent('nui_doorlock:newDoorSetup', playerId, args)
-end, true)
-
+QBCore.Commands.Add('newdoor', 'Create a new door using a gun', {{name='doortype', help='door/double/sliding/garage/doublesliding'},{name='locked', help='true/falae'},{name='jobs', help='Add upto 4 jobs to this, seperate with spaces and no commas'}}, true, function(source, args)
+    TriggerClientEvent('nui_doorlock:newDoorSetup', source, args)
+end, 'god')
+		
 RegisterServerEvent('nui_doorlock:newDoorCreate')
 AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, doubleDoor, doorname)
 	xPlayer = QBCore.Functions.GetPlayer(source)
