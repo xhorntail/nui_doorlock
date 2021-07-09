@@ -31,10 +31,12 @@ end)
 
 -- Sync a door with the server
 RegisterNetEvent('nui_doorlock:setState')
-AddEventHandler('nui_doorlock:setState', function(sid, doorID, locked, src)
+AddEventHandler('nui_doorlock:setState', function(sid, doorID, locked, isScript, src)
 	CreateThread(function()
 		local serverid = GetPlayerServerId(PlayerId())
-		if sid == serverid then dooranim() end
+		if sid == serverid and not isScript then 
+			dooranim() 
+		end
 		if Config.DoorList[doorID] then
 			Config.DoorList[doorID].locked = locked
 			updateDoors(doorID)
@@ -49,11 +51,11 @@ AddEventHandler('nui_doorlock:setState', function(sid, doorID, locked, src)
 							if Config.DoorList[doorID].locked then
 								DoorSystemSetDoorState(v.doorHash, 1, false, false) -- Set to locked
 								DoorSystemSetAutomaticDistance(v.doorHash, 0.0, false, false)
-								if k == 2 then playSound(Config.DoorList[doorID], src) return end -- End the loop
+								if k == 2 then playSound(Config.DoorList[doorID], isScript, src) return end -- End the loop
 							else
 								DoorSystemSetDoorState(v.doorHash, 0, false, false) -- Set to unlocked
 								DoorSystemSetAutomaticDistance(v.doorHash, 30.0, false, false)
-								if k == 2 then playSound(Config.DoorList[doorID], src) return end -- End the loop
+								if k == 2 then playSound(Config.DoorList[doorID], isScript, src) return end -- End the loop
 							end
 						elseif Config.DoorList[doorID].locked and (v.doorState == 4) then
 							if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(v.object, true) end
@@ -77,23 +79,23 @@ AddEventHandler('nui_doorlock:setState', function(sid, doorID, locked, src)
 						if Config.DoorList[doorID].locked then
 							DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 1, false, false) -- Set to locked
 							DoorSystemSetAutomaticDistance(Config.DoorList[doorID].doorHash, 0.0, false, false)
-							playSound(Config.DoorList[doorID], src)
+							playSound(Config.DoorList[doorID], isScript, src)
 							return -- End the loop
 						else
 							DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 0, false, false) -- Set to unlocked
 							DoorSystemSetAutomaticDistance(Config.DoorList[doorID].doorHash, 30.0, false, false)
-							playSound(Config.DoorList[doorID], src)
+							playSound(Config.DoorList[doorID], isScript, src)
 							return -- End the loop
 						end
 					elseif Config.DoorList[doorID].locked and (Config.DoorList[doorID].doorState == 4) then
 						if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(Config.DoorList[doorID].object, true) end
 						DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 1, false, false) -- Set to locked
-						playSound(Config.DoorList[doorID], src)
+						playSound(Config.DoorList[doorID], isScript, src)
 						return -- End the loop
 					elseif not Config.DoorList[doorID].locked then
 						if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(Config.DoorList[doorID].object, false) end
 						DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 0, false, false) -- Set to unlocked
-						playSound(Config.DoorList[doorID], src)
+						playSound(Config.DoorList[doorID], isScript, src)
 						return -- End the loop
 					else
 						if round(Config.DoorList [doorID].currentHeading, 0) == round(Config.DoorList[doorID].objHeading, 0) then
@@ -106,8 +108,9 @@ AddEventHandler('nui_doorlock:setState', function(sid, doorID, locked, src)
 	end)
 end)
 
-function playSound(door, src)
+function playSound(door, isScript, src)
 	local origin
+	if isScript then return end
 	if src and src ~= playerPed then src = NetworkGetEntityFromNetworkId(src) end
 	if not src then origin = door.textCoords elseif src == playerPed then origin = playerCoords else origin = NetworkGetPlayerCoords(src) end
 	local distance = #(playerCoords - origin)
@@ -128,36 +131,14 @@ function playSound(door, src)
 	end
 end
 
-local last_x, last_y, lasttext, isDrawing
-function Draw3dNUI(coords, text)
+local isDrawing = false
+
+function Draw3dNUI(text)
 	local paused = false
 	if IsPauseMenuActive() then paused = true end
-	--[[local onScreen,_x,_y = GetScreenCoordFromWorldCoord(coords.x,coords.y,coords.z)
-	if _x ~= last_x or _y ~= last_y or text ~= lasttext or paused then
-		last_x, last_y, lasttext = _x, _y, text
-		Citizen.Wait(0)
-	end]]
-	isDrawing = true
-	if paused then SendNUIMessage ({type = "hide"}) else SendNUIMessage({type = "display", text = text}) end
-end
-
-function Draw3dText(coords, text) -- You can revert to text if you want - it has higher average performance cost but lower spikes
-	local onScreen, _x, _y = World3dToScreen2d(coords.x, coords.y, coords.z)
-    local px,py,pz=table.unpack(GetGameplayCamCoords())
-	if onScreen then
-		SetTextScale(0.35, 0.35)
-		SetTextFont(4)
-		SetTextProportional(1)
-		SetTextColour(255, 255, 255, 215)
-		SetTextDropShadow(0, 0, 0, 55)
-		SetTextEdge(0, 0, 0, 150)
-		SetTextDropShadow()
-		SetTextOutline()
-		SetTextEntry("STRING")
-		SetTextCentre(1)
-		AddTextComponentString(text)
-		DrawText(_x,_y)
-	end
+    isDrawing = true
+    if paused then SendNUIMessage ({type = "hide"}) else SendNUIMessage({type = "display", text = text}) end
+    Citizen.Wait(0)
 end
 
 function loadAnimDict(dict)
@@ -335,7 +316,7 @@ end)
 
 Citizen.CreateThread(function()
 	while true do
-		Citizen.Wait(0)
+		Citizen.Wait(1)
 		playerPed = PlayerPedId()
 		playerCoords = GetEntityCoords(playerPed)
 		if doorCount ~= nil and doorCount ~= 0 and closestDistance and closestV.setText then
@@ -344,15 +325,15 @@ Citizen.CreateThread(function()
 				if not closestV.doors then
 					local doorState = DoorSystemGetDoorState(closestV.doorHash)
 					if closestV.locked and doorState ~= 1 then
-						Draw3dNUI(closestV.textCoords, 'Locking')
+						Draw3dNUI('Locking')
 					elseif not closestV.locked and not CheckAuth(closestV) then
-						if Config.ShowUnlockedText then Draw3dNUI(closestV.textCoords, 'Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
+						if Config.ShowUnlockedText then Draw3dNUI('Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
 					elseif not closestV.locked and CheckAuth(closestV) then
-						if Config.ShowUnlockedText then Draw3dNUI(closestV.textCoords, '[E] - Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
+						if Config.ShowUnlockedText then Draw3dNUI('[E] - Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
 					elseif closestV.locked and not CheckAuth(closestV) then
-						Draw3dNUI(closestV.textCoords, 'Locked')
+						Draw3dNUI('Locked')
 					elseif closestV.locked and CheckAuth(closestV) then
-						Draw3dNUI(closestV.textCoords, '[E] - Locked')
+						Draw3dNUI('[E] - Locked')
 					end
 				else
 					local door = {}
@@ -363,15 +344,15 @@ Citizen.CreateThread(function()
 					state[2] = DoorSystemGetDoorState(door[2].doorHash)
 					
 					if closestV.locked and (state[1] ~= 1 or state[2] ~= 1) then
-						Draw3dNUI(closestV.textCoords, 'Locking')
+						Draw3dNUI('Locking')
 					elseif not closestV.locked and not CheckAuth(closestV) then
-						if Config.ShowUnlockedText then Draw3dNUI(closestV.textCoords, 'Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
+						if Config.ShowUnlockedText then Draw3dNUI('Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
 					elseif not closestV.locked and CheckAuth(closestV) then
-						if Config.ShowUnlockedText then Draw3dNUI(closestV.textCoords, '[E] - Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
+						if Config.ShowUnlockedText then Draw3dNUI('[E] - Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
 					elseif closestV.locked and not CheckAuth(closestV) then
-						Draw3dNUI(closestV.textCoords, 'Locked')
+						Draw3dNUI('Locked')
 					elseif closestV.locked and CheckAuth(closestV) then
-						Draw3dNUI(closestV.textCoords, '[E] - Locked')
+						Draw3dNUI('[E] - Locked')
 					end
 				end
 			else
@@ -428,7 +409,7 @@ RegisterCommand('doorlock', function()
 		local locked = not closestV.locked
 		--debug(closestDoor, closestV)
 		if closestV.audioRemote then src = NetworkGetNetworkIdFromEntity(playerPed) else src = nil end
-		TriggerServerEvent('nui_doorlock:updateState', closestDoor, locked, src) -- Broadcast new state of the door to everyone
+		TriggerServerEvent('nui_doorlock:server:updateState', closestDoor, locked, src, false, false) -- Broadcast new state of the door to everyone
 	end
 end)
 RegisterKeyMapping('doorlock', Config.KeybingText, 'keyboard', 'e')
@@ -436,7 +417,11 @@ RegisterKeyMapping('doorlock', Config.KeybingText, 'keyboard', 'e')
 RegisterNetEvent('lockpicks:UseLockpick')
 AddEventHandler('lockpicks:UseLockpick', function(isAdvanced)
 	if not isDead and not isCuffed and closestDoor and closestV.lockpick and closestV.locked then
-		TriggerEvent('qb-lockpick:client:openLockpick', lockpickFinish)
+		if isAdvanced then
+			TriggerEvent('qb-lockpick:client:openLockpick', advlockpickFinish)
+		else
+			TriggerEvent('qb-lockpick:client:openLockpick', lockpickFinish)
+		end
 	end
 end)
 
@@ -448,9 +433,31 @@ function lockpickFinish(success)
 		local count = 0
 		while GetIsTaskActive(playerPed, 225) do Citizen.Wait(10) count = count + 1 if count == 150 then break end end
 		Citizen.Wait(1800)
-		TriggerServerEvent('if-doorlock:server:updateState', closestDoor, false, nil, true) -- Broadcast new state of the door to everyone
+		TriggerServerEvent('nui_doorlock:server:updateState', closestDoor, false, false, true, false) -- Broadcast new state of the door to everyone
     else
-        QBCore.Functions.Notify('It didn\'t work..', 'error', 2500)
+		if math.random(1, 100) <= 17 then
+			TriggerServerEvent("QBCore:Server:RemoveItem", "lockpick", 1, false)
+			TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items["lockpick"], "remove")
+		end
+        QBCore.Functions.Notify('Failed..', 'error', 2500)
+    end
+end
+
+function advlockpickFinish(success)
+    if success then
+		QBCore.Functions.Notify('Success!', 'success', 2500)
+		TaskTurnPedToFaceCoord(playerPed, closestV.objCoords.x, closestV.objCoords.y, closestV.objCoords.z, 0)
+		Citizen.Wait(300)
+		local count = 0
+		while GetIsTaskActive(playerPed, 225) do Citizen.Wait(10) count = count + 1 if count == 150 then break end end
+		Citizen.Wait(1800)
+		TriggerServerEvent('nui_doorlock:server:updateState', closestDoor, false, false, true, false) -- Broadcast new state of the door to everyone
+    else
+		if math.random(1, 100) <= 17 then
+			TriggerServerEvent("QBCore:Server:RemoveItem", "advancedlockpick", 1, false)
+			TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items["advancedlockpick"], "remove")
+		end
+        QBCore.Functions.Notify('Failed..', 'error', 2500)
     end
 end
 
@@ -502,9 +509,14 @@ AddEventHandler('nui_doorlock:newDoorSetup', function(args)
 				model = GetEntityModel(entity)
 				heading = GetEntityHeading(entity)
 			end
-			if result then DrawInfos("Coordinates: " .. coords .. "\nHeading: " .. heading .. "\nHash: " .. model)
-		else DrawInfos("Aim at your desired door and shoot") end
-			if IsControlJustPressed(0, 24) then break end
+			if result then 
+				DrawInfos("Coordinates: " .. coords .. "\nHeading: " .. heading .. "\nHash: " .. model)
+			else 
+				DrawInfos("Aim at your desired door and shoot") 
+			end
+			if IsControlJustPressed(0, 24) then 
+				break 
+			end
 		end
 		if not model or model == 0 then print('Did not receive a model hash\nIf the door is transparent, make sure you aim at the frame') return end
 		local jobs = {}
@@ -617,5 +629,5 @@ RegisterNetEvent('nui_doorlock:newDoorAdded')
 AddEventHandler('nui_doorlock:newDoorAdded', function(newDoor, doorID, locked)
 	Config.DoorList[doorID] = newDoor
 	updateDoors()
-	TriggerEvent('nui_doorlock:setState', GetPlayerServerId(PlayerId()), doorID, locked)
+	TriggerEvent('nui_doorlock:setState', GetPlayerServerId(PlayerId()), doorID, locked, false)
 end)
