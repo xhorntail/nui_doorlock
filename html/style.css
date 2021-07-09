@@ -42,12 +42,18 @@
 }
 
 @keyframes slide-in {
+    0% {
+        right: 13vh;
+    }
     100% {
         right: -0.7vh;
     }
 }
 
 @keyframes slide-out {
+    0% {
+        right: -0.7vh;
+    }
     100% {
         right: 13vh;
     }
