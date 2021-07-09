@@ -41,11 +41,13 @@ window.addEventListener('message', ({ data }) => {
     }
 
     if (data.type == "hide") {
-        doorlock.classList.remove('slide-in');
         doorlock.classList.add('slide-out');
-        doorlock.innerHTML = '';
-        doorlock.style.display = 'none';
-        doorlock.classList.remove('slide-out');
+        setTimeout(function() {
+            doorlock.innerHTML = '';
+            doorlock.style.display = 'none';
+            doorlock.classList.remove('slide-in');
+            doorlock.classList.remove('slide-out');
+        }, 1000)
     }
 })
 
