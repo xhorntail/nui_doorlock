@@ -84,12 +84,8 @@ end)
 
 function IsAuthorized(xPlayer, doorID, locked, usedLockpick, isScript)
 	local jobName, grade = {}, {}
-	jobName[1] = xPlayer.PlayerData.job.name
-	grade[1] = xPlayer.job.grade
-	if xPlayer.job2 then
-		jobName[2] = xPlayer.job2.name
-		grade[2] = xPlayer.job2.grade
-	end
+	jobName = xPlayer.PlayerData.job.name
+	grade = xPlayer.PlayerData.job.grade.level
 	local canOpen = false
 
 	if not isScript then
@@ -99,7 +95,7 @@ function IsAuthorized(xPlayer, doorID, locked, usedLockpick, isScript)
 
 		if not canOpen and doorID.authorizedJobs then
 			for job,rank in pairs(doorID.authorizedJobs) do
-				if (job == jobName[1] and rank <= grade[1]) or (jobName[2] and job == jobName[2] and rank <= grade[2]) then
+				if job == jobName and rank <= grade then
 					canOpen = true
 					if canOpen then break end
 				end
