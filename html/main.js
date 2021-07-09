@@ -33,24 +33,24 @@ window.addEventListener('message', ({ data }) => {
     }
 
     if (data.type == "display") {
-        if (data.text == undefined) {
-            doorlock.innerHTML = '';
-            doorlock.style.display = 'none';
-        } else {
-            doorlockContainer.style.display = 'block';
+        if (data.text !== undefined) {
             doorlock.style.display = 'block';
             doorlock.innerHTML = data.text;
+            doorlock.classList.add('slide-in');
         }
     }
 
     if (data.type == "hide") {
+        doorlock.classList.remove('slide-in');
+        doorlock.classList.add('slide-out');
         doorlock.innerHTML = '';
         doorlock.style.display = 'none';
+        doorlock.classList.remove('slide-out');
     }
 })
 
 document.addEventListener('keyup', (e) => {
-    if(e.key == 'Escape') {
+    if (e.key == 'Escape') {
         sendNUICB('close');
     }
 });
