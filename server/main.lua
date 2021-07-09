@@ -1,4 +1,7 @@
 QBCore = nil
+
+TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
+
 local doorInfo = {}
 
 Citizen.CreateThread(function()
@@ -38,10 +41,8 @@ AddEventHandler('onResourceStop', function(resourceName)
 	end
 end)
 
-TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
-
-RegisterServerEvent('nui_doorlock:updateState')
-AddEventHandler('nui_doorlock:updateState', function(doorID, locked, src, usedLockpick)
+RegisterServerEvent('nui_doorlock:server:updateState')
+AddEventHandler('nui_doorlock:server:updateState', function(doorID, locked, src, usedLockpick, isScript)
 	local playerId = source
 	local xPlayer = QBCore.Functions.GetPlayer(playerId)
 
@@ -60,19 +61,19 @@ AddEventHandler('nui_doorlock:updateState', function(doorID, locked, src, usedLo
 		return
 	end
 	
-	if not IsAuthorized(xPlayer, Config.DoorList[doorID], doorInfo[doorID], usedLockpick) then
+	if not IsAuthorized(xPlayer, Config.DoorList[doorID], doorInfo[doorID], usedLockpick, isScript) then
 		return
 	end
 
 	doorInfo[doorID] = locked
-	if not src then TriggerClientEvent('nui_doorlock:setState', -1, playerId, doorID, locked)
-	else TriggerClientEvent('nui_doorlock:setState', -1, playerId, doorID, locked, src) end
+	if not src then TriggerClientEvent('nui_doorlock:setState', -1, playerId, doorID, locked, isScript)
+	else TriggerClientEvent('nui_doorlock:setState', -1, playerId, doorID, locked, isScript, src) end
 
 	if Config.DoorList[doorID].autoLock then
 		Citizen.SetTimeout(Config.DoorList[doorID].autoLock, function()
 			if doorInfo[doorID] == true then return end
 			doorInfo[doorID] = true
-			TriggerClientEvent('nui_doorlock:setState', -1, -1, doorID, true)
+			TriggerClientEvent('nui_doorlock:setState', -1, -1, doorID, true, isScript)
 		end)
 	end
 end)
@@ -81,58 +82,63 @@ QBCore.Functions.CreateCallback('nui_doorlock:getDoorInfo', function(source, cb)
 	cb(doorInfo)
 end)
 
-function IsAuthorized(xPlayer, doorID, locked, usedLockpick)
+function IsAuthorized(xPlayer, doorID, locked, usedLockpick, isScript)
 	local jobName, grade = {}, {}
 	jobName[1] = xPlayer.PlayerData.job.name
-	grade[1] = xPlayer.PlayerData.job.grade.level
+	grade[1] = xPlayer.job.grade
 	if xPlayer.job2 then
 		jobName[2] = xPlayer.job2.name
-		grade[2] = xPlayer.PlayerData.job2.grade.level
+		grade[2] = xPlayer.job2.grade
 	end
 	local canOpen = false
-	if doorID.lockpick and usedLockpick then
- 		canOpen = true
-	end
 
-	if not canOpen and doorID.authorizedJobs then
-		for job,rank in pairs(doorID.authorizedJobs) do
-			if (job == jobName[1] and rank <= grade[1]) or (jobName[2] and job == jobName[2] and rank <= grade[2]) then
-				canOpen = true
-				if canOpen then break end
+	if not isScript then
+		if doorID.lockpick and usedLockpick then
+			canOpen = true
+	   	end
+
+		if not canOpen and doorID.authorizedJobs then
+			for job,rank in pairs(doorID.authorizedJobs) do
+				if (job == jobName[1] and rank <= grade[1]) or (jobName[2] and job == jobName[2] and rank <= grade[2]) then
+					canOpen = true
+					if canOpen then break end
+				end
+			end
+			if not canOpen and not doorID.items then
+				print(('nui_doorlock: %s (%s) was not authorized to open a locked door!'):format(xPlayer.PlayerData.name, xPlayer.PlayerData.license))
 			end
 		end
-		if not canOpen and not doorID.items then
-			print(('nui_doorlock: %s (%s) was not authorized to open a locked door!'):format(xPlayer.PlayerData.name, xPlayer.PlayerData.license))
-		end
-	end
 
-	if not canOpen and doorID.items then
-        local count = false
-        for k,v in pairs(doorID.items) do
-            if xPlayer.Functions.GetItemByName(v) ~= nil then
-            count = true
-            else
-                count = false
-            end
-            if count then
-                canOpen = true
-                local consumables = { ['ticket']=1 }
-                if locked and consumables[v] then
-                    xPlayer.Functions.RemoveItem(v, 1)
-                end
-                break
-                
-            end
-        end
-        if not count then canOpen = false end
-    end
+		if not canOpen and doorID.items then
+			local count = false
+			for k,v in pairs(doorID.items) do
+				if xPlayer.Functions.GetItemByName(v) ~= nil then
+				count = true
+				else
+					count = false
+				end
+				if count then
+					canOpen = true
+					local consumables = { ['ticket']=1 }
+					if locked and consumables[v] then
+						xPlayer.Functions.RemoveItem(v, 1)
+					end
+					break
+					
+				end
+			end
+			if not count then canOpen = false end
+		end
+	else
+		canOpen = true
+	end
     return canOpen
 end
 
 QBCore.Commands.Add('newdoor', 'Create a new door using a gun', {{name='doortype', help='door/double/sliding/garage/doublesliding'},{name='locked', help='true/falae'},{name='jobs', help='Add upto 4 jobs to this, seperate with spaces and no commas'}}, true, function(source, args)
     TriggerClientEvent('nui_doorlock:newDoorSetup', source, args)
 end, 'god')
-		
+
 RegisterServerEvent('nui_doorlock:newDoorCreate')
 AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, doubleDoor, doorname)
 	xPlayer = QBCore.Functions.GetPlayer(source)
@@ -175,7 +181,7 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
 
 
 	file = io.open(path, 'a+')
-	if not doorname then label = '\n\n-- UNNAMED DOOR CREATED BY '..xPlayer.PlayerData.name..'\ntable.insert(Config.DoorList, {'
+	if not doorname then label = '\n\n-- Unnamed door created by '..xPlayer.PlayerData.name..'\ntable.insert(Config.DoorList, {'
 	else
 		label = '\n\n-- '..doorname.. '\ntable.insert(Config.DoorList, {'
 	end
