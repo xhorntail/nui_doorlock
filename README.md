@@ -1,6 +1,4 @@
-# Dropping support, sick of people not paying attention.
-
-# <a href='https://forum.cfx.re/t/esx-nui-doorlock-improved-performance-supports-sliding-doors/2068259'>nui_doorlock</a>
+# nui_doorlock
 A fork of esx_doorlock, featuring improved performance and improved functionality.
 <hr>
 <p align="center"><img src='https://user-images.githubusercontent.com/65407488/114383355-cbd26c00-9bd0-11eb-9079-8c341e6824b1.png'></img></p>
