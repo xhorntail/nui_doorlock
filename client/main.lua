@@ -134,8 +134,8 @@ end
 local isDrawing = false
 
 function Draw3dNUI(text)
-	local paused = false
-	if IsPauseMenuActive() then paused = true end
+    local paused = false
+    if IsPauseMenuActive() then paused = true end
     isDrawing = true
     if paused then SendNUIMessage ({type = "hide"}) else SendNUIMessage({type = "display", text = text}) end
     Citizen.Wait(0)
@@ -150,9 +150,9 @@ end
 
 function dooranim()
 	Citizen.CreateThread(function()
-    	loadAnimDict("anim@heists@keycard@") 
+    		loadAnimDict("anim@heists@keycard@") 
 		TaskPlayAnim(playerPed, "anim@heists@keycard@", "exit", 8.0, 1.0, -1, 16, 0, 0, 0, 0)
-    	Citizen.Wait(550)
+    		Citizen.Wait(550)
 		ClearPedTasks(playerPed)
 	end)
 end
@@ -163,7 +163,7 @@ function round(num, decimal)
 end
 
 function debug(doorID, data)
-	if GetDistanceBetweenCoords(playerCoords, data.textCoords) < 3 then
+	if #(playerCoords - data.textCoords) < 3 then
 		for k,v in pairs(data) do
 			print(  ('%s = %s'):format(k, v) )
 		end
@@ -369,16 +369,37 @@ end)
 
 function CheckAuth(doorID)
 	local canOpen = false
+	local gottenresult = false
 
 	if doorID.authorizedJobs then
 		for job,rank in pairs(doorID.authorizedJobs) do
 			if (job == PlayerJob.name) then
 				canOpen = true
+				gottenresult = true
 				break
 			end
 		end
-	else
+	end
+
+	if doorID.items and not canOpen then
+		QBCore.Functions.TriggerCallback('nui_doorlock:CheckItems', function(result)
+			if result then
+				canOpen = true
+				gottenresult = true
+			else
+				canOpen = false
+				gottenresult = true
+			end
+		end, doorID.items, doorID.locked)
+	end
+
+	if not doorID.authorizedJobs and not doorID.items and not canOpen then
 		canOpen = true
+		gottenresult = true
+	end
+
+	while not gottenresult do
+		Wait(1)
 	end
 
     return canOpen
