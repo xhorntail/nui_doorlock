@@ -1,10 +1,9 @@
 const formContainer = document.getElementById('formContainer');
 const newDoorForm = document.getElementById('newDoor');
-const sound = document.getElementById('sounds');
 const doorlockContainer = document.getElementById('container');
 const doorlock = document.getElementById('doorlock');
 
-const formInfo = {
+var formInfo = {
     configname: document.getElementById('configname'),
     doorname: document.getElementById('doorname'),
     doortype: document.getElementById('doortype'),
@@ -20,27 +19,21 @@ window.addEventListener('message', ({ data }) => {
     if (data.type == "newDoorSetup") {
         data.enable ? formContainer.style.display = "flex" : formContainer.style.display = "none";
         data.enable ? doorlockContainer.style.display = "none" : doorlockContainer.style.display = "block";
-    }
-
-    if (data.type == "audio") {
-        var volume = (data.audio['volume'] / 10) * data.sfx
-        if (data.distance !== 0) {
-            var volume = volume / data.distance
-        }
-        sound.setAttribute('src', 'sounds/' + data.audio['file']);
-        sound.volume = volume;
-        sound.play();
-    }
-
-    if (data.type == "display") {
+    } else if (data.type == "audio") {
+		var volume = (data.audio['volume'] / 10 ) * data.sfx
+		if (data.distance !== 0) {
+			var volume = volume / data.distance
+		}
+		var sound = new Audio('sounds/' + data.audio['file']);
+		sound.volume = volume;
+		sound.play();
+    } else if (data.type == "display") {
         if (data.text !== undefined) {
             doorlock.style.display = 'block';
             doorlock.innerHTML = data.text;
             doorlock.classList.add('slide-in');
         }
-    }
-
-    if (data.type == "hide") {
+    } else if (data.type == "hide") {
         doorlock.classList.add('slide-out');
         setTimeout(function() {
             doorlock.innerHTML = '';
