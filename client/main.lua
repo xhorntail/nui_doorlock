@@ -32,80 +32,76 @@ end)
 -- Sync a door with the server
 RegisterNetEvent('nui_doorlock:setState')
 AddEventHandler('nui_doorlock:setState', function(sid, doorID, locked, isScript, src)
-	CreateThread(function()
-		local serverid = GetPlayerServerId(PlayerId())
-		if sid == serverid and not isScript then 
-			dooranim() 
-		end
-		if Config.DoorList[doorID] then
-			Config.DoorList[doorID].locked = locked
-			updateDoors(doorID)
-			while true do
-				Citizen.Wait(0)
-				if Config.DoorList[doorID].doors then
-					for k, v in pairs(Config.DoorList[doorID].doors) do
-						if not IsDoorRegisteredWithSystem(v.doorHash) then return end -- If door is not registered end the loop
-						v.currentHeading = GetEntityHeading(v.object)
-						v.doorState = DoorSystemGetDoorState(v.doorHash)
-						if Config.DoorList[doorID].slides then
-							if Config.DoorList[doorID].locked then
-								DoorSystemSetDoorState(v.doorHash, 1, false, false) -- Set to locked
-								DoorSystemSetAutomaticDistance(v.doorHash, 0.0, false, false)
-								if k == 2 then playSound(Config.DoorList[doorID], isScript, src) return end -- End the loop
-							else
-								DoorSystemSetDoorState(v.doorHash, 0, false, false) -- Set to unlocked
-								DoorSystemSetAutomaticDistance(v.doorHash, 30.0, false, false)
-								if k == 2 then playSound(Config.DoorList[doorID], isScript, src) return end -- End the loop
-							end
-						elseif Config.DoorList[doorID].locked and (v.doorState == 4) then
-							if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(v.object, true) end
-							DoorSystemSetDoorState(v.doorHash, 1, false, false) -- Set to locked
-							if Config.DoorList[doorID].doors[1].doorState == Config.DoorList[doorID].doors[2].doorState then playSound(Config.DoorList[doorID], src) return end -- End the loop
-						elseif not Config.DoorList[doorID].locked then
-							if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(v.object, false) end
-							DoorSystemSetDoorState(v.doorHash, 0, false, false) -- Set to unlocked
-							if Config.DoorList[doorID].doors[1].doorState == Config.DoorList[doorID].doors[2].doorState then playSound(Config.DoorList[doorID], src) return end -- End the loop
-						else
-							if round(v.currentHeading, 0) == round(v.objHeading, 0) then
-								DoorSystemSetDoorState(v.doorHash, 4, false, false) -- Force to close
-							end
-						end
-					end
-				else
-					if not IsDoorRegisteredWithSystem(Config.DoorList[doorID].doorHash) then return end -- If door is not registered end the loop
-					Config.DoorList[doorID].currentHeading = GetEntityHeading(Config.DoorList[doorID].object)
-					Config.DoorList[doorID].doorState = DoorSystemGetDoorState(Config.DoorList[doorID].doorHash)
-					if Config.DoorList[doorID].slides then
-						if Config.DoorList[doorID].locked then
-							DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 1, false, false) -- Set to locked
-							DoorSystemSetAutomaticDistance(Config.DoorList[doorID].doorHash, 0.0, false, false)
-							playSound(Config.DoorList[doorID], isScript, src)
-							return -- End the loop
-						else
-							DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 0, false, false) -- Set to unlocked
-							DoorSystemSetAutomaticDistance(Config.DoorList[doorID].doorHash, 30.0, false, false)
-							playSound(Config.DoorList[doorID], isScript, src)
-							return -- End the loop
-						end
-					elseif Config.DoorList[doorID].locked and (Config.DoorList[doorID].doorState == 4) then
-						if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(Config.DoorList[doorID].object, true) end
-						DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 1, false, false) -- Set to locked
-						playSound(Config.DoorList[doorID], isScript, src)
-						return -- End the loop
-					elseif not Config.DoorList[doorID].locked then
-						if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(Config.DoorList[doorID].object, false) end
-						DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 0, false, false) -- Set to unlocked
-						playSound(Config.DoorList[doorID], isScript, src)
-						return -- End the loop
-					else
-						if round(Config.DoorList [doorID].currentHeading, 0) == round(Config.DoorList[doorID].objHeading, 0) then
-							DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 4, false, false) -- Force to close
-						end
-					end
-				end
-			end
-		end
-	end)
+    local serverid = GetPlayerServerId(PlayerId())
+    if sid == serverid and not isScript then dooranim() end
+    if Config.DoorList[doorID] then
+        Config.DoorList[doorID].locked = locked
+        updateDoors(doorID)
+        while true do
+            Citizen.Wait(5)
+            if Config.DoorList[doorID].doors then
+                for k, v in pairs(Config.DoorList[doorID].doors) do
+                    if not IsDoorRegisteredWithSystem(v.doorHash) then return end -- If door is not registered end the loop
+                    v.currentHeading = GetEntityHeading(v.object)
+                    v.doorState = DoorSystemGetDoorState(v.doorHash)
+                    if Config.DoorList[doorID].slides then
+                        if Config.DoorList[doorID].locked then
+                            DoorSystemSetDoorState(v.doorHash, 1, false, false) -- Set to locked
+                            DoorSystemSetAutomaticDistance(v.doorHash, 0.0, false, false)
+                            if k == 2 then playSound(Config.DoorList[doorID], isScript, src) return end -- End the loop
+                        else
+                            DoorSystemSetDoorState(v.doorHash, 0, false, false) -- Set to unlocked
+                            DoorSystemSetAutomaticDistance(v.doorHash, 30.0, false, false)
+                            if k == 2 then playSound(Config.DoorList[doorID], isScript, src) return end -- End the loop
+                        end
+                    elseif Config.DoorList[doorID].locked and (v.doorState == 4) then
+                        if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(v.object, true) end
+                        DoorSystemSetDoorState(v.doorHash, 1, false, false) -- Set to locked
+                        if Config.DoorList[doorID].doors[1].doorState == Config.DoorList[doorID].doors[2].doorState then playSound(Config.DoorList[doorID], src) return end -- End the loop
+                    elseif not Config.DoorList[doorID].locked then
+                        if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(v.object, false) end
+                        DoorSystemSetDoorState(v.doorHash, 0, false, false) -- Set to unlocked
+                        if Config.DoorList[doorID].doors[1].doorState == Config.DoorList[doorID].doors[2].doorState then playSound(Config.DoorList[doorID], src) return end -- End the loop
+                    else
+                        if round(v.currentHeading, 0) == round(v.objHeading, 0) then
+                            DoorSystemSetDoorState(v.doorHash, 4, false, false) -- Force to close
+                        end
+                    end
+                end
+            else
+                if not IsDoorRegisteredWithSystem(Config.DoorList[doorID].doorHash) then return end -- If door is not registered end the loop
+                Config.DoorList[doorID].currentHeading = GetEntityHeading(Config.DoorList[doorID].object)
+                Config.DoorList[doorID].doorState = DoorSystemGetDoorState(Config.DoorList[doorID].doorHash)
+                if Config.DoorList[doorID].slides then
+                    if Config.DoorList[doorID].locked then
+                        DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 1, false, false) -- Set to locked
+                        DoorSystemSetAutomaticDistance(Config.DoorList[doorID].doorHash, 0.0, false, false)
+                        playSound(Config.DoorList[doorID], isScript, src)
+                        return -- End the loop
+                    else
+                        DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 0, false, false) -- Set to unlocked
+                        DoorSystemSetAutomaticDistance(Config.DoorList[doorID].doorHash, 30.0, false, false)
+                        playSound(Config.DoorList[doorID], isScript, src)
+                        return -- End the loop
+                    end
+                elseif Config.DoorList[doorID].locked and (Config.DoorList[doorID].doorState == 4) then
+                    if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(Config.DoorList[doorID].object, true) end
+                    DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 1, false, false) -- Set to locked
+                    playSound(Config.DoorList[doorID], isScript, src)
+                    return -- End the loop
+                elseif not Config.DoorList[doorID].locked then
+                    if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(Config.DoorList[doorID].object, false) end
+                    DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 0, false, false) -- Set to unlocked
+                    playSound(Config.DoorList[doorID], isScript, src)
+                    return -- End the loop
+                else
+                    if round(Config.DoorList [doorID].currentHeading, 0) == round(Config.DoorList[doorID].objHeading, 0) then
+                        DoorSystemSetDoorState(Config.DoorList[doorID].doorHash, 4, false, false) -- Force to close
+                    end
+                end
+            end
+        end
+    end
 end)
 
 function playSound(door, isScript, src)
@@ -114,7 +110,6 @@ function playSound(door, isScript, src)
 	if src and src ~= playerPed then src = NetworkGetEntityFromNetworkId(src) end
 	if not src then origin = door.textCoords elseif src == playerPed then origin = playerCoords else origin = NetworkGetPlayerCoords(src) end
 	local distance = #(playerCoords - origin)
-	--print(origin)
 	if distance < 10 then
 		if not door.audioLock then
 			if door.audioRemote then
@@ -193,11 +188,12 @@ end
 
 function updateDoors(specificDoor)
 	playerCoords = GetEntityCoords(PlayerPedId())
-	for doorID, data in ipairs(Config.DoorList) do
+	for doorID, data in pairs(Config.DoorList) do
 		if (not specificDoor or doorID == specificDoor) then
 			if data.doors then
-				for k,v in ipairs(data.doors) do
-					if #(playerCoords - v.objCoords) < 100 then
+				for k,v in pairs(data.doors) do
+					if #(playerCoords - v.objCoords) < 30 then
+						Citizen.Wait(1)
 						v.object = GetClosestObjectOfType(v.objCoords, 1.0, v.objHash, false, false, false)
 						if data.delete then
 							SetEntityAsMissionEntity(v.object, 1, 1)
@@ -218,7 +214,8 @@ function updateDoors(specificDoor)
 					elseif v.object then RemoveDoorFromSystem(v.doorHash) end
 				end
 			elseif not data.doors then
-				if #(playerCoords - data.objCoords) < 100 then
+				if #(playerCoords - data.objCoords) < 30 then
+					Citizen.Wait(2)
 					if data.slides then data.object = GetClosestObjectOfType(data.objCoords, 5.0, data.objHash, false, false, false) else
 						data.object = GetClosestObjectOfType(data.objCoords, 1.0, data.objHash, false, false, false)
 					end
@@ -242,7 +239,7 @@ function updateDoors(specificDoor)
 			end
 			-- set text coords
 			if not data.setText and data.doors then
-				for k,v in ipairs(data.doors) do
+				for k,v in pairs(data.doors) do
 					if k == 1 and DoesEntityExist(v.object) then
 						data.textCoords = v.objCoords
 					elseif k == 2 and DoesEntityExist(v.object) and data.textCoords then
@@ -273,7 +270,7 @@ function updateDoors(specificDoor)
 		end
 	end
 	doorCount = DoorSystemGetSize()
-	--if doorCount ~= 0 then print(('%s doors are loaded'):format(doorCount)) end
+	lastCoords = playerCoords
 end
 
 Citizen.CreateThread(function()
@@ -293,6 +290,7 @@ end)
 local doorSleep = 500
 Citizen.CreateThread(function()
 	while not playerCoords do Citizen.Wait(0) end
+	updateDoors()
 	while true do
 		Citizen.Wait(0)
 		if doorCount then
@@ -363,7 +361,7 @@ Citizen.CreateThread(function()
 			end
 		end
 		
-		if doorCount == 0 then doorSleep = 1000 Citizen.Wait(1000) end
+		if doorCount == 0 then doorSleep = 1000 Citizen.Wait(doorSleep) end
 	end
 end)
 
@@ -428,11 +426,11 @@ RegisterCommand('doorlock', function()
 			end)
 		end
 		local locked = not closestV.locked
-		--debug(closestDoor, closestV)
 		if closestV.audioRemote then src = NetworkGetNetworkIdFromEntity(playerPed) else src = nil end
 		TriggerServerEvent('nui_doorlock:server:updateState', closestDoor, locked, src, false, false) -- Broadcast new state of the door to everyone
 	end
 end)
+TriggerEvent("chat:removeSuggestion", "/doorlock")
 RegisterKeyMapping('doorlock', Config.KeybingText, 'keyboard', 'e')
 
 RegisterNetEvent('lockpicks:UseLockpick')
