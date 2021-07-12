@@ -62,11 +62,11 @@ AddEventHandler('nui_doorlock:setState', function(sid, doorID, locked, isScript,
                     elseif Config.DoorList[doorID].locked and (v.doorState == 4) then
                         if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(v.object, true) end
                         DoorSystemSetDoorState(v.doorHash, 1, false, false) -- Set to locked
-                        if Config.DoorList[doorID].doors[1].doorState == Config.DoorList[doorID].doors[2].doorState then playSound(Config.DoorList[doorID], src) return end -- End the loop
+                        if Config.DoorList[doorID].doors[1].doorState == Config.DoorList[doorID].doors[2].doorState then playSound(Config.DoorList[doorID], isScript, src) return end -- End the loop
                     elseif not Config.DoorList[doorID].locked then
                         if Config.DoorList[doorID].oldMethod then FreezeEntityPosition(v.object, false) end
                         DoorSystemSetDoorState(v.doorHash, 0, false, false) -- Set to unlocked
-                        if Config.DoorList[doorID].doors[1].doorState == Config.DoorList[doorID].doors[2].doorState then playSound(Config.DoorList[doorID], src) return end -- End the loop
+                        if Config.DoorList[doorID].doors[1].doorState == Config.DoorList[doorID].doors[2].doorState then playSound(Config.DoorList[doorID], isScript, src) return end -- End the loop
                     else
                         if round(v.currentHeading, 0) == round(v.objHeading, 0) then
                             DoorSystemSetDoorState(v.doorHash, 4, false, false) -- Force to close
