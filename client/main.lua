@@ -297,23 +297,24 @@ Citizen.CreateThread(function()
 	while not playerCoords do Citizen.Wait(0) end
 	updateDoors()
 	while true do
-		Citizen.Wait(0)
 		if doorCount then
 			while true do
 				if not closestDistance then break end
 				Citizen.Wait(10)
 			end
 			local distance
+                        doorSleep = 100
 			for k,v in pairs(Config.DoorList) do
 				if v.setText and v.textCoords then
 					distance = #(v.textCoords - playerCoords)
-					if v.setText and distance < v.maxDistance then
+					if distance < 10 and distance < v.maxDistance then
 						closestDoor, closestV, closestDistance = k, v, distance
-					end
+                                                doorSleep = 0
+	     				end
 				end
 			end
 			Citizen.Wait(doorSleep)
-		else Citizen.Wait(1000) end
+		else Citizen.Wait(1000); doorSleep = 500; end
 	end
 end)
 
