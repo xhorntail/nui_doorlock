@@ -71,8 +71,8 @@ AddEventHandler('nui_doorlock:server:updateState', function(doorID, locked, src,
 
 	if Config.DoorList[doorID].autoLock then
 		Citizen.SetTimeout(Config.DoorList[doorID].autoLock, function()
-			if doorInfo[doorID] == true then return end
-			doorInfo[doorID] = true
+			if doorInfo[doorID].locked == true then return end
+			doorInfo[doorID].locked = true
 			TriggerClientEvent('nui_doorlock:setState', -1, -1, doorID, true, isScript)
 		end)
 	end
