@@ -1,6 +1,5 @@
 QBCore = nil
 local closestDoor, closestV, closestDistance, playerPed, playerCoords, doorCount, retrievedData
-local isDead, isCuffed = false, false
 local playerNotActive = true
 
 Citizen.CreateThread(function()
@@ -21,17 +20,17 @@ Citizen.CreateThread(function()
 	updateDoors()
 	playerNotActive = nil
 	retrievedData = nil
-	PlayerJob = QBCore.Functions.GetPlayerData().job
+	PlayerData = QBCore.Functions.GetPlayerData()
 end)
 
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded')
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
-	PlayerJob = QBCore.Functions.GetPlayerData().job
+	PlayerData = QBCore.Functions.GetPlayerData()
 end)
 
 RegisterNetEvent('QBCore:Client:OnJobUpdate')
 AddEventHandler('QBCore:Client:OnJobUpdate', function(job)
-	PlayerJob = job
+	PlayerData.job = job
 end)
 
 -- Sync a door with the server
@@ -377,7 +376,7 @@ function CheckAuth(doorID)
 
 	if doorID.authorizedJobs then
 		for job,rank in pairs(doorID.authorizedJobs) do
-			if (job == PlayerJob.name) then
+			if (job == PlayerData.job.name) then
 				canOpen = true
 				gottenresult = true
 				break
@@ -414,7 +413,7 @@ exports('updateDoors', updateDoors)
 -- `exports.nui_doorlock:updateDoors()`
 
 RegisterCommand('doorlock', function()
-	if not isDead and not isCuffed and closestDoor then
+	if not PlayerData.metadata["isdead"] and not PlayerData.metadata["ishandcuffed"] and closestDoor then
 		if IsControlPressed(0, 86) or IsControlReleased(0, 86) then key = 'e' end
 		local veh = GetVehiclePedIsIn(playerPed)
 		if veh and key == 'e' then
@@ -441,7 +440,7 @@ RegisterKeyMapping('doorlock', Config.KeybingText, 'keyboard', 'e')
 
 RegisterNetEvent('lockpicks:UseLockpick')
 AddEventHandler('lockpicks:UseLockpick', function(isAdvanced)
-	if not isDead and not isCuffed and closestDoor and closestV.lockpick and closestV.locked then
+	if not PlayerData.metadata["isdead"] and not PlayerData.metadata["ishandcuffed"] and closestDoor and closestV.lockpick and closestV.locked then
 		if isAdvanced then
 			TriggerEvent('qb-lockpick:client:openLockpick', advlockpickFinish)
 		else
