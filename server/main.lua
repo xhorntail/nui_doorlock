@@ -197,7 +197,7 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
 		newDoor.audioRemote = false
 		newDoor.lockpick = false
 	local path = GetResourcePath(GetCurrentResourceName())
-	
+
 	if config ~= '' then
 		path = path:gsub('//', '/')..'/configs/'..string.gsub(config, ".lua", "")..'.lua'
 	else
@@ -206,7 +206,7 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
 
 
 	file = io.open(path, 'a+')
-	if not doorname then label = '\n\n-- Unnamed door created by '..xPlayer.PlayerData.name..'\ntable.insert(Config.DoorList, {'
+	if not doorname then label = '\n\n-- UNNAMED DOOR CREATED BY '..xPlayer.PlayerData.name..'\ntable.insert(Config.DoorList, {'
 	else
 		label = '\n\n-- '..doorname.. '\ntable.insert(Config.DoorList, {'
 	end
@@ -231,7 +231,7 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
 		end
 	end
 	file:write([[
-		
+
 	-- oldMethod = true,
 	-- audioLock = {['file'] = 'metal-locker.ogg', ['volume'] = 0.6},
 	-- audioUnlock = {['file'] = 'metallic-creak.ogg', ['volume'] = 0.7},
@@ -239,7 +239,7 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
 	file:write('\n})')
 	file:close()
 	local doorID = #Config.DoorList + 1
-	
+
 	if jobs[4] then newDoor.authorizedJobs = { [jobs[1]] = 0, [jobs[2]] = 0, [jobs[3]] = 0, [jobs[4]] = 0 }
 	elseif jobs[3] then newDoor.authorizedJobs = { [jobs[1]] = 0, [jobs[2]] = 0, [jobs[3]] = 0 }
 	elseif jobs[2] then newDoor.authorizedJobs = { [jobs[1]] = 0, [jobs[2]] = 0 }
