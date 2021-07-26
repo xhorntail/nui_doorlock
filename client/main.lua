@@ -395,7 +395,7 @@ RegisterCommand('doorlock', function()
         end
         local locked = not closestDoor.data.locked
         if closestDoor.data.audioRemote then src = NetworkGetNetworkIdFromEntity(PlayerPedId()) else src = nil end
-        TriggerServerEvent('nui_doorlock:updateState', closestDoor.id, locked, src) -- Broadcast new state of the door to everyone
+        TriggerServerEvent('nui_doorlock:server:updateState', closestDoor.id, locked, src, false, false) -- Broadcast new state of the door to everyone
     end
 end)
 TriggerEvent("chat:removeSuggestion", "/doorlock")
