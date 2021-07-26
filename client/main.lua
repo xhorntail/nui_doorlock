@@ -1,5 +1,6 @@
 QBCore = nil
 local Config = Config
+local isLoggedIn = false
 
 local isCuffed, playerCoords, doorCount = false
 local nearbyDoors, closestDoor = {}, {}
