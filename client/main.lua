@@ -124,15 +124,12 @@ local Draw3dNUI = function(text)
 end
 
 local CheckAuth = function(doorData)
-    local canOpen = false
     local gottenresult = false
 
     if doorData.authorizedJobs then
         for job,rank in pairs(doorData.authorizedJobs) do
             if job == PlayerData.job.name then
-                canOpen = true
-                gottenresult = true
-                break
+		return true
             end
         end
     end
@@ -140,24 +137,22 @@ local CheckAuth = function(doorData)
     if doorData.items and not canOpen then
         QBCore.Functions.TriggerCallback('nui_doorlock:CheckItems', function(result)
             if result then
-                canOpen = true
-                gottenresult = true
+                return true
             else
-                gottenresult = true
+                return false
             end
         end, doorData.items, doorData.locked)
     end
 
     if not doorData.authorizedJobs and not doorData.items and not canOpen then
-        canOpen = true
-        gottenresult = true
+	return true
     end
 
-    while not gottenresult do
+    while doorData.items do
         Wait(1)
     end
 
-    return canOpen
+    return false
 end
 
 local DoorLoop = function()
