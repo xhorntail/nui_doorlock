@@ -272,7 +272,7 @@ end
 RegisterNetEvent('nui_doorlock:setState')
 AddEventHandler('nui_doorlock:setState', function(sid, doorID, locked, src, isScript)
     local serverid = GetPlayerServerId(PlayerId())
-    if sid == serverid then dooranim() end
+    if sid == serverid and not isScript then dooranim() end
     if Config.DoorList[doorID] then
         Config.DoorList[doorID].locked = locked
         UpdateDoors(doorID)
