@@ -9,6 +9,7 @@ Citizen.CreateThread(function()
 		TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
 		Citizen.Wait(0)
 	end
+	PlayerData = QBCore.Functions.GetPlayerData()
 end)
 
 local round = function(num, decimal)
