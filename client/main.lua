@@ -133,7 +133,7 @@ local CheckAuth = function(doorData)
         end
     end
 
-    if doorData.items and not canOpen then
+    if doorData.items then
         QBCore.Functions.TriggerCallback('nui_doorlock:CheckItems', function(result)
             if result then
                 return true
@@ -143,7 +143,7 @@ local CheckAuth = function(doorData)
         end, doorData.items, doorData.locked)
     end
 
-    if not doorData.authorizedJobs and not doorData.items and not canOpen then
+    if not doorData.authorizedJobs and not doorData.items then
 	return true
     end
 
