@@ -64,7 +64,7 @@ function IsAuthorized(xPlayer, doorID, usedLockpick, isScript)
             local item = xPlayer.Functions.GetItemByName(v)
             if item ~= nil and item.amount > 0 then
                 local consumables = {'ticket'} -- Add items you would like to be removed after use to this table
-                if locked and consumables[v] then
+                if doorID.locked and consumables[v] then
                     xPlayer.Functions.RemoveItem(v, 1)
                 end
                 return true
