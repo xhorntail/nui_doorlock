@@ -125,6 +125,8 @@ local Draw3dNUI = function(text)
 end
 
 local CheckAuth = function(doorData)
+    local hasitem = nil
+	
     if doorData.authorizedJobs then
         for job,rank in pairs(doorData.authorizedJobs) do
             if job == PlayerData.job.name and rank == PlayerData.job.grade.level then
@@ -136,19 +138,21 @@ local CheckAuth = function(doorData)
     if doorData.items then
         QBCore.Functions.TriggerCallback('nui_doorlock:CheckItems', function(result)
             if result then
-                return true
+                hasitem = true
             else
-                return false
+                hasitem = false
             end
         end, doorData.items, doorData.locked)
+		
+	while hasitem == nil do
+	    Wait(1)	
+	end
+	
+	return hasitem
     end
 
     if not doorData.authorizedJobs and not doorData.items then
 	return true
-    end
-
-    while doorData.items do
-        Wait(1)
     end
 
     return false
