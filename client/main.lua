@@ -195,17 +195,18 @@ local DoorLoop = function()
                         playerCoords = GetEntityCoords(PlayerPedId())
                         closestDoor.distance = #(closestDoor.data.textCoords - playerCoords)
                         if closestDoor.distance < closestDoor.data.maxDistance then
+			    local canOpen = CheckAuth(closestDoor.data)
                             if not closestDoor.data.doors then
                                 local doorState = DoorSystemGetDoorState(closestDoor.data.doorHash)
-                                if closestDoor.data.locked and not CheckAuth(closestDoor.data) and doorState ~= 1 then
+                                if closestDoor.data.locked and not canOpen and doorState ~= 1 then
                                     Draw3dNUI('Locking')
-                                elseif not closestDoor.data.locked and not CheckAuth(closestDoor.data) then
+                                elseif not closestDoor.data.locked and not canOpen then
                                     if Config.ShowUnlockedText then Draw3dNUI('Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
-                                elseif not closestDoor.data.locked and CheckAuth(closestDoor.data) then
+                                elseif not closestDoor.data.locked and canOpen then
                                     if Config.ShowUnlockedText then Draw3dNUI('[E] - Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
-                                elseif closestDoor.data.locked and not CheckAuth(closestDoor.data) then
+                                elseif closestDoor.data.locked and not canOpen then
                                     Draw3dNUI('Locked')
-                                elseif closestDoor.data.locked and CheckAuth(closestDoor.data) then
+                                elseif closestDoor.data.locked and canOpen then
                                     Draw3dNUI('[E] - Locked')
                                 end
                             else
@@ -218,19 +219,20 @@ local DoorLoop = function()
                                 
                                 if closestDoor.data.locked and (state[1] ~= 1 or state[2] ~= 1) then
                                     Draw3dNUI('Locking')
-                                elseif not closestDoor.data.locked and not CheckAuth(closestDoor.data) then
+                                elseif not closestDoor.data.locked and not canOpen then
                                     if Config.ShowUnlockedText then Draw3dNUI('Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
-                                elseif not closestDoor.data.locked and CheckAuth(closestDoor.data) then
+                                elseif not closestDoor.data.locked and canOpen then
                                     if Config.ShowUnlockedText then Draw3dNUI('[E] - Unlocked') else if isDrawing then SendNUIMessage ({type = "hide"}) isDrawing = false end end
-                                elseif closestDoor.data.locked and not CheckAuth(closestDoor.data) then
+                                elseif closestDoor.data.locked and not canOpen then
                                     Draw3dNUI('Locked')
-                                elseif closestDoor.data.locked and CheckAuth(closestDoor.data) then
+                                elseif closestDoor.data.locked and canOpen then
                                     Draw3dNUI('[E] - Locked')
                                 end
                             end
                         else
                             if closestDoor.distance > closestDoor.data.maxDistance and isDrawing then
-                                SendNUIMessage ({type = "hide"}) isDrawing = false
+                                SendNUIMessage({type = "hide"}) 
+				isDrawing = false
                             end
                             break
                         end
