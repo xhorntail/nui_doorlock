@@ -190,7 +190,7 @@ local DoorLoop = function()
                 while true do
                     if not paused and IsPauseMenuActive() then SendNUIMessage ({type = "hide"}) paused = true 
                     elseif paused then Citizen.Wait(20)
-                        if not IsPauseMenuActive() then lasttext, paused = '', false end
+                        if not IsPauseMenuActive() then paused = false end
                     else
                         playerCoords = GetEntityCoords(PlayerPedId())
                         closestDoor.distance = #(closestDoor.data.textCoords - playerCoords)
