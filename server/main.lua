@@ -79,6 +79,35 @@ function IsAuthorized(xPlayer, doorID, usedLockpick, isScript)
     return false
 end
 
+QBCore.Functions.CreateCallback('nui_doorlock:CheckItems', function(source, cb, items, locked)
+	local Player = QBCore.Functions.GetPlayer(source)
+
+	if Player ~= nil then
+		local canOpen = false
+		local count = false
+		for k,v in pairs(items) do
+			if Player.Functions.GetItemByName(v) ~= nil then
+				count = true
+			else
+				count = false
+			end
+			if count then
+				canOpen = true
+				local consumables = { ['ticket']=1 }
+				if locked and consumables[v] then
+					Player.Functions.RemoveItem(v, 1)
+				end
+				break
+
+			end
+		end
+		if not count then canOpen = false end
+		cb(canOpen)
+	else
+		cb(false)
+	end
+end)
+
 QBCore.Commands.Add('newdoor', 'Create a new door using a gun', {{name='doortype', help='door/double/sliding/garage/doublesliding'},{name='locked', help='true/false'},{name='jobs', help='Add up to 4 jobs to this, seperate with spaces and no commas'}}, false, function(source, args)
     TriggerClientEvent('nui_doorlock:newDoorSetup', source, args)
 end, 'god')
