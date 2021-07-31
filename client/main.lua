@@ -125,8 +125,6 @@ local Draw3dNUI = function(text)
 end
 
 local CheckAuth = function(doorData)
-    local gottenresult = false
-
     if doorData.authorizedJobs then
         for job,rank in pairs(doorData.authorizedJobs) do
             if job == PlayerData.job.name and rank == PlayerData.job.grade.level then
