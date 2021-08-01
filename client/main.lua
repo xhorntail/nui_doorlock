@@ -405,7 +405,7 @@ RegisterKeyMapping('doorlock', '[Doorlock] Interact with doorlock~', 'keyboard',
 
 RegisterNetEvent('lockpicks:UseLockpick')
 AddEventHandler('lockpicks:UseLockpick', function(isAdvanced)
-	if not PlayerData.metadata["isdead"] and not PlayerData.metadata["ishandcuffed"] and closestDoor and closestV.lockpick and closestV.locked then
+	if not PlayerData.metadata["isdead"] and not PlayerData.metadata["ishandcuffed"] and closestDoor ~= nil and closestDoor.data.lockpick and closestDoor.data.locked then
 		if isAdvanced then
 			TriggerEvent('qb-lockpick:client:openLockpick', advlockpickFinish)
 		else
@@ -428,7 +428,7 @@ function lockpickFinish(success)
 			TriggerServerEvent("QBCore:Server:RemoveItem", "lockpick", 1, false)
 			TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items["lockpick"], "remove")
 		end
-        QBCore.Functions.Notify('Failed..', 'error', 2500)
+        	QBCore.Functions.Notify('Failed..', 'error', 2500)
     end
 end
 
@@ -446,7 +446,7 @@ function advlockpickFinish(success)
 			TriggerServerEvent("QBCore:Server:RemoveItem", "advancedlockpick", 1, false)
 			TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items["advancedlockpick"], "remove")
 		end
-        QBCore.Functions.Notify('Failed..', 'error', 2500)
+        	QBCore.Functions.Notify('Failed..', 'error', 2500)
     end
 end
 
