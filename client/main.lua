@@ -498,6 +498,7 @@ AddEventHandler('nui_doorlock:newDoorSetup', function(args)
     --if not args[1] then print('/newdoor [doortype] [locked] [jobs]\nDoortypes: door, sliding, garage, double, doublesliding\nLocked: true or false\nJobs: Up to four can be added with the command') return end
     if arg then doorType = arg.doortype else doorType = args[1] end
     if arg then doorLocked = arg.doorlocked else doorLocked = not not args[1] end
+    if arg then configname = arg.configname else configname = '' end
     local validTypes = {['door']=true, ['sliding']=true, ['garage']=true, ['double']=true, ['doublesliding']=true}
     if not validTypes[doorType] then print(doorType.. ' is not a valid doortype') return end
     if arg and arg.item == '' and arg.job1 == '' then print('You must enter either a job or item for lock authorisation') return end
@@ -550,7 +551,7 @@ AddEventHandler('nui_doorlock:newDoorSetup', function(args)
         heading = GetEntityHeading(entity)
         RemoveDoorFromSystem(doorHash)
         if arg then doorname = arg.doorname end
-        TriggerServerEvent('nui_doorlock:newDoorCreate', arg.configname, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, false, doorname)
+        TriggerServerEvent('nui_doorlock:newDoorCreate', configname, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, false, doorname)
         print('Successfully sent door data to the server')
     elseif doorType == 'double' or doorType == 'doublesliding' then
         local entity, coords, heading, model = {}, {}, {}, {}
@@ -612,7 +613,7 @@ AddEventHandler('nui_doorlock:newDoorSetup', function(args)
             RemoveDoorFromSystem(doorHash[i])
         end
         if arg then doorname = arg.doorname end
-        TriggerServerEvent('nui_doorlock:newDoorCreate', arg.configname, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, true, doorname)
+        TriggerServerEvent('nui_doorlock:newDoorCreate', configname, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, true, doorname)
         print('Successfully sent door data to the server')
         arg = nil
     end
