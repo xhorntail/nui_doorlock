@@ -129,7 +129,7 @@ local CheckAuth = function(doorData)
 	
     if doorData.authorizedJobs then
         for job,rank in pairs(doorData.authorizedJobs) do
-            if job == PlayerData.job.name and rank >= PlayerData.job.grade.level then
+            if job == PlayerData.job.name and rank <= PlayerData.job.grade.level then
 		return true
             end
         end
