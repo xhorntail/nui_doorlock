@@ -1,4 +1,4 @@
-# nui_doorlock
+# [nui_doorlock](https://github.com/thelindat/nui_doorlock)
 
 A fork that is made to function with [QBCore](https://github.com/qbcore-framework/qb-core).
 
