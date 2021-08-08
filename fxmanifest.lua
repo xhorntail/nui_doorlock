@@ -4,15 +4,17 @@ game 'gta5'
 version '1.10.0'
 description 'https://github.com/thelindat/nui_doorlock'
 
-server_scripts {
+shared_scripts {
+	'@qb-core/import.lua',
 	'config.lua',
 	'configs/*.lua',
+}
+
+server_scripts {
 	'server/main.lua'
 }
 
 client_scripts {
-	'config.lua',
-	'configs/*.lua',
 	'client/main.lua'
 }
 
