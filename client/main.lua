@@ -1,17 +1,9 @@
-local QBCore = nil
 local PlayerData = {}
 local Config = Config
 local isLoggedIn = false
 
 local isDrawing, playerCoords, doorCount = false
 local nearbyDoors, closestDoor = {}, {}
-
-Citizen.CreateThread(function()
-	while QBCore == nil do
-		TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
-		Citizen.Wait(0)
-	end
-end)
 
 local round = function(num, decimal)
     local mult = 10^(decimal)
