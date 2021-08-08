@@ -21,7 +21,6 @@ table.insert(Config.DoorList, {
     },
     authorizedJobs = {
         ['police'] = 0,
-        ['offpolice'] = 0,
     }
 })
 
@@ -112,7 +111,6 @@ table.insert(Config.DoorList, {
     maxDistance = 2,
     authorizedJobs = {
         ['police'] = 0,
-        ['offpolice'] = 0,
     }
 })
 
