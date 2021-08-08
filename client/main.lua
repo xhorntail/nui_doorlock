@@ -3,7 +3,7 @@ local PlayerData = {}
 local Config = Config
 local isLoggedIn = false
 
-local isCuffed, playerCoords, doorCount = false
+local isDrawing, playerCoords, doorCount = false
 local nearbyDoors, closestDoor = {}, {}
 
 Citizen.CreateThread(function()
