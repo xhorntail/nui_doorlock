@@ -114,7 +114,7 @@ end, 'god')
 
 RegisterServerEvent('nui_doorlock:newDoorCreate')
 AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, coords, jobs, item, doorLocked, maxDistance, slides, garage, doubleDoor, doorname)
-    xPlayer = QBCore.Functions.GetPlayer(source)
+    local xPlayer = QBCore.Functions.GetPlayer(source)
     if not QBCore.Functions.HasPermission(source, 'god') then print(xPlayer.PlayerData.name.. 'attempted to create a new door but does not have permission') return end
     doorLocked = tostring(doorLocked)
     slides = tostring(slides)
