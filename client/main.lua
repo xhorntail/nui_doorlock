@@ -489,7 +489,7 @@ AddEventHandler('nui_doorlock:newDoorSetup', function(args)
     end
     --if not args[1] then print('/newdoor [doortype] [locked] [jobs]\nDoortypes: door, sliding, garage, double, doublesliding\nLocked: true or false\nJobs: Up to four can be added with the command') return end
     if arg then doorType = arg.doortype else doorType = args[1] end
-    if arg then doorLocked = arg.doorlocked else doorLocked = not not args[1] end
+    if arg then doorLocked = arg.doorlocked else doorLocked = not not args[2] end
     if arg then configname = arg.configname else configname = '' end
     local validTypes = {['door']=true, ['sliding']=true, ['garage']=true, ['double']=true, ['doublesliding']=true}
     if not validTypes[doorType] then print(doorType.. ' is not a valid doortype') return end
@@ -525,12 +525,13 @@ AddEventHandler('nui_doorlock:newDoorSetup', function(args)
             jobs[2] = args[4]
             jobs[3] = args[5]
             jobs[4] = args[6]
+            item = false
         else
             if arg.job1 ~= '' then jobs[1] = arg.job1 end
             if arg.job2 ~= '' then jobs[2] = arg.job2 end
             if arg.job3 ~= '' then jobs[3] = arg.job3 end
             if arg.job4 ~= '' then jobs[4] = arg.job4 end
-            if arg.item ~= '' then item = arg.item end
+            if arg.item ~= '' then item = arg.item else item = false end
         end
         local maxDistance, slides, garage = 2.0, false, false
         if doorType == 'sliding' then slides = true
@@ -582,12 +583,13 @@ AddEventHandler('nui_doorlock:newDoorSetup', function(args)
             jobs[2] = args[4]
             jobs[3] = args[5]
             jobs[4] = args[6]
+            item = false
         else
             if arg.job1 ~= '' then jobs[1] = arg.job1 end
             if arg.job2 ~= '' then jobs[2] = arg.job2 end
             if arg.job3 ~= '' then jobs[3] = arg.job3 end
             if arg.job4 ~= '' then jobs[4] = arg.job4 end
-            if arg.item ~= '' then item = arg.item end
+            if arg.item ~= '' then item = arg.item else item = false end
         end
         local maxDistance, slides, garage = 2.5, false, false
         if doorType == 'sliding' or doorType == 'doublesliding' then slides = true end
@@ -632,6 +634,11 @@ AddEventHandler('nui_doorlock:newDoorAdded', function(newDoor, doorID, locked)
     TriggerEvent('nui_doorlock:setState', GetPlayerServerId(PlayerId()), doorID, locked, false, false)
 end)
 
+RegisterNetEvent('QBCore:Client:OnJobUpdate')
+AddEventHandler('QBCore:Client:OnJobUpdate', function(JobInfo)
+    PlayerData.job = JobInfo
+end)
+
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded')
 AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
     PlayerData = QBCore.Functions.GetPlayerData()
@@ -643,4 +650,13 @@ RegisterNetEvent('QBCore:Client:OnPlayerUnload')
 AddEventHandler('QBCore:Client:OnPlayerUnload', function()
     isLoggedIn = false
     PlayerData = {}
+end)
+
+AddEventHandler('onResourceStart', function(resource)
+    if resource == GetCurrentResourceName() then
+        Wait(100)
+        PlayerData = QBCore.Functions.GetPlayerData()
+        isLoggedIn = true
+        Citizen.CreateThread(DoorLoop)
+    end
 end)
