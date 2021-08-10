@@ -397,7 +397,7 @@ RegisterKeyMapping('doorlock', '[Doorlock] Interact with doorlock~', 'keyboard',
 
 RegisterNetEvent('lockpicks:UseLockpick')
 AddEventHandler('lockpicks:UseLockpick', function(isAdvanced)
-	if closestDoor ~= nil then
+	if closestDoor.data ~= nil then
 		if not PlayerData.metadata["isdead"] and not PlayerData.metadata["ishandcuffed"] and closestDoor.data.lockpick and closestDoor.data.locked then
 			if isAdvanced then
 				TriggerEvent('qb-lockpick:client:openLockpick', advlockpickFinish)
