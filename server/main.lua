@@ -1,7 +1,3 @@
-QBCore = nil
-
-TriggerEvent('QBCore:GetObject', function(obj) QBCore = obj end)
-
 RegisterServerEvent('nui_doorlock:server:updateState')
 AddEventHandler('nui_doorlock:server:updateState', function(doorID, locked, src, usedLockpick, isScript)
     local playerId = source
