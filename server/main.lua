@@ -28,7 +28,7 @@ AddEventHandler('nui_doorlock:server:updateState', function(doorID, locked, src,
 
     if Config.DoorList[doorID].autoLock then
         SetTimeout(Config.DoorList[doorID].autoLock, function()
-            if Config.DoorList[doorID].locked == true then return end
+            if Config.DoorList[doorID].locked then return end
             Config.DoorList[doorID].locked = true
             TriggerClientEvent('nui_doorlock:setState', -1, -1, doorID, true, isScript)
         end)
@@ -41,15 +41,22 @@ end)
 
 function IsAuthorized(xPlayer, doorID, usedLockpick, isScript)
     if isScript then return true end
-    local jobName, grade = xPlayer.PlayerData.job.name, xPlayer.PlayerData.job.grade.level
     
     if doorID.lockpick and usedLockpick then
         return true
     end
 
     if doorID.authorizedJobs then
-        for job,rank in pairs(doorID.authorizedJobs) do
-            if (job == jobName and rank <= grade) then
+        for job, rank in pairs(doorID.authorizedJobs) do
+            if (job == xPlayer.PlayerData.job.name and rank <= xPlayer.PlayerData.job.grade.level) then
+                return true
+            end
+        end
+    end
+	
+    if doorID.authorizedGangs then
+        for job, rank in pairs(doorID.authorizedGangs) do
+            if (job == xPlayer.PlayerData.gang.name and rank <= xPlayer.PlayerData.gang.grade.level) then
                 return true
             end
         end
@@ -58,7 +65,7 @@ function IsAuthorized(xPlayer, doorID, usedLockpick, isScript)
     if doorID.items then
         for k, v in pairs(doorID.items) do
             local item = xPlayer.Functions.GetItemByName(v)
-            if item ~= nil and item.amount > 0 then
+            if item and item.amount > 0 then
                 local consumables = {'ticket'} -- Add items you would like to be removed after use to this table
                 if doorID.locked and consumables[v] then
                     xPlayer.Functions.RemoveItem(v, 1)
@@ -78,11 +85,11 @@ end
 QBCore.Functions.CreateCallback('nui_doorlock:CheckItems', function(source, cb, items, locked)
 	local Player = QBCore.Functions.GetPlayer(source)
 
-	if Player ~= nil then
+	if Player then
 		local canOpen = false
 		local count = false
 		for k,v in pairs(items) do
-			if Player.Functions.GetItemByName(v) ~= nil then
+			if Player.Functions.GetItemByName(v) then
 				count = true
 			else
 				count = false
@@ -183,11 +190,13 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
     file:write('\n})')
     file:close()
     local doorID = #Config.DoorList + 1
+    newDoor.doorID = doorID
     
     if jobs[4] then newDoor.authorizedJobs = { [jobs[1]] = 0, [jobs[2]] = 0, [jobs[3]] = 0, [jobs[4]] = 0 }
     elseif jobs[3] then newDoor.authorizedJobs = { [jobs[1]] = 0, [jobs[2]] = 0, [jobs[3]] = 0 }
     elseif jobs[2] then newDoor.authorizedJobs = { [jobs[1]] = 0, [jobs[2]] = 0 }
     elseif jobs[1] then newDoor.authorizedJobs = { [jobs[1]] = 0 } end
+
     if item then newDoor.Items = { item } end
 
     Config.DoorList[doorID] = newDoor
