@@ -1,16 +1,12 @@
-# [nui_doorlock](https://github.com/thelindat/nui_doorlock)
+# nui_doorlock
 
-A fork that is made to function with [QBCore](https://github.com/qbcore-framework/qb-core).
+A fork that is made to function with [QBCore](https://github.com/qbcore-framework/qb-core). Thank you Linden for this amazing resource, unfortunately Linden has taken it off of their github so this repo now looks like it's a fork of another one but it was originally a fork of the original which was [Linden's](https://github.com/thelindat) repo
 
-This resource is **discontinued**, I will be working on [qb-doorlock](https://github.com/qbcore-framework/qb-doorlock) when we get to the NUI update.
-
-That it is discontinued doesn't mean that you can't use it, it's still usable but if you find a bug then I won't fix it.
+This resource is **discontinued**, this doesn't mean you can't use it, you are free to use it but it can have some bugs that I won't fix, I will be working on [qb-doorlock](https://github.com/qbcore-framework/qb-doorlock) when we get to the NUI update.
 
 <hr>
 <p align="center"><img src='https://user-images.githubusercontent.com/65407488/114383355-cbd26c00-9bd0-11eb-9079-8c341e6824b1.png'></img></p>
 <hr>
-
-<h3 align='center'>For more support or to see more of my resources you can join my <a href='https://discord.gg/hmcmv3P7YW'>discord</a></h3>
 
 * Easily add and configure new doors! <a href='https://streamable.com/e290wk'>Example video</a>  
 Use the `/newdoor` command to automatically create a new entry on the DoorList.  
@@ -47,25 +43,3 @@ Allow item authorisation with `items = {'key_master', 'key_lspd'}` etc.
 
 
 <p align='center'><img src="https://i.imgur.com/2Yz7Rtm.png"/></img></p>
-
-
-<br><br><br>
-<hr>
-
-# esx_doorlock
-This is a door lock script for ESX, which is used to lock certain doors that shouldn't be accessable by normal citizens.
-
-This script was originally developed by Darklandz, later modified by Miss_Behavin and others.
-
-# Legal
-### License
-esx_doorlock - door locks for ESX
-
-Copyright (C) 2015-2018 ElPumpo / Hawaii_Beach
-
-This program Is free software: you can redistribute it And/Or modify it under the terms Of the GNU General Public License As published by the Free Software Foundation, either version 3 Of the License, Or (at your option) any later version.
-
-This program Is distributed In the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty Of MERCHANTABILITY Or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License For more details.
-
-You should have received a copy Of the GNU General Public License along with this program. If Not, see http://www.gnu.org/licenses/.
-<hr>
