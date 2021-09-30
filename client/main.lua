@@ -1,6 +1,5 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 local PlayerData = {}
-local Config = Config
 
 local playerCoords, doorCount
 local nearbyDoors, closestDoor = {}, {}
