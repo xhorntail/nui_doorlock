@@ -661,4 +661,4 @@ CreateThread(function()
     if LocalPlayer.state['isLoggedIn'] then
         CreateThread(DoorLoop)
     end
-end
+end)
