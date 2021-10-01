@@ -1,7 +1,7 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 local PlayerData = {}
-
-local playerCoords, doorCount
+local Started = false
+local playerCoords, lastCoords
 local nearbyDoors, closestDoor = {}, {}
 
 local round = function(num, decimal)
@@ -104,7 +104,6 @@ local UpdateDoors = function(specificDoor)
             end
         end
     end
-    doorCount = DoorSystemGetSize()
     lastCoords = playerCoords
 end
 
@@ -115,38 +114,34 @@ local Draw3dNUI = function(text)
 end
 
 local CheckAuth = function(doorData)
-    local hasitem = nil
-	
+    local hasitem = promise.new() -- Snippet for callbacks with promises by Mojito: https://github.com/Mojito-Fivem
+
     if doorData.authorizedJobs then
         for job, rank in pairs(doorData.authorizedJobs) do
             if job == PlayerData.job.name and rank <= PlayerData.job.grade.level then
-		return true
+		        return true
             end
         end
     end
-	
+
     if doorData.authorizedGangs then
         for job, rank in pairs(doorData.authorizedGangs) do
             if job == PlayerData.gang.name and rank <= PlayerData.gang.grade.level then
-		return true
+		        return true
             end
         end
     end
 
     if doorData.items then
         QBCore.Functions.TriggerCallback('nui_doorlock:CheckItems', function(result)
-            hasitem = result
+            hasitem:resolve(result)
         end, doorData.items, doorData.locked)
-		
-	while hasitem == nil do
-	    Wait(0)	
-	end
-	
-	return hasitem
+
+        return Citizen.Await(hasitem)
     end
 
     if (not doorData.authorizedJobs and not next(doorData.authorizedJobs)) and (not doorData.authorizedGangs and not doorData.authorizedGangs) and not doorData.items then
-	return true
+	    return true
     end
 
     return false
@@ -156,6 +151,7 @@ local DoorLoop = function()
     QBCore.Functions.TriggerCallback('nui_doorlock:getDoorList', function(doorList)
         Config.DoorList = doorList
         UpdateDoors()
+        Started = true
         while LocalPlayer.state['isLoggedIn'] do
             playerCoords = GetEntityCoords(PlayerPedId())
             local doorSleep = 400
@@ -163,7 +159,7 @@ local DoorLoop = function()
                 local distance = #(playerCoords - lastCoords)
                 if distance > 30 then
                     UpdateDoors()
-		    doorSleep = 1000
+		            doorSleep = 1000
                 else
                     closestDoor.distance = 30
                     for k in pairs(nearbyDoors) do
@@ -182,14 +178,14 @@ local DoorLoop = function()
             end
             if closestDoor.id then
                 while true do
-                    if not paused and IsPauseMenuActive() then SendNUIMessage ({type = "hide"}) paused = true 
+                    if not paused and IsPauseMenuActive() then SendNUIMessage ({type = "hide"}) paused = true
                     elseif paused then Wait(20)
                         if not IsPauseMenuActive() then paused = false end
                     else
                         playerCoords = GetEntityCoords(PlayerPedId())
                         closestDoor.distance = #(closestDoor.data.textCoords - playerCoords)
                         if closestDoor.distance < closestDoor.data.maxDistance then
-			    local canOpen = CheckAuth(closestDoor.data)
+			                local canOpen = CheckAuth(closestDoor.data)
                             if not closestDoor.data.doors then
                                 local doorState = DoorSystemGetDoorState(closestDoor.data.doorHash)
                                 if closestDoor.data.locked and not canOpen and doorState ~= 1 then
@@ -210,7 +206,7 @@ local DoorLoop = function()
                                 door[2] = closestDoor.data.doors[2]
                                 state[1] = DoorSystemGetDoorState(door[1].doorHash)
                                 state[2] = DoorSystemGetDoorState(door[2].doorHash)
-                                
+
                                 if closestDoor.data.locked and (state[1] ~= 1 or state[2] ~= 1) then
                                     Draw3dNUI('Locking')
                                 elseif not closestDoor.data.locked and not canOpen then
@@ -235,6 +231,7 @@ local DoorLoop = function()
             end
             Wait(doorSleep)
         end
+        Started = false
     end)
 end
 
@@ -421,7 +418,7 @@ function lockpickFinish(success)
 			TriggerServerEvent("QBCore:Server:RemoveItem", "lockpick", 1, false)
 			TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items["lockpick"], "remove")
 		end
-        	QBCore.Functions.Notify('Failed..', 'error', 2500)
+        QBCore.Functions.Notify('Failed..', 'error', 2500)
     end
 end
 
@@ -440,7 +437,7 @@ function advlockpickFinish(success)
 			TriggerServerEvent("QBCore:Server:RemoveItem", "advancedlockpick", 1, false)
 			TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items["advancedlockpick"], "remove")
 		end
-        	QBCore.Functions.Notify('Failed..', 'error', 2500)
+        QBCore.Functions.Notify('Failed..', 'error', 2500)
     end
 end
 
@@ -633,6 +630,9 @@ end)
 
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
     PlayerData = QBCore.Functions.GetPlayerData()
+    if not Started then
+        CreateThread(DoorLoop)
+    end
 end)
 
 RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
@@ -658,7 +658,7 @@ AddEventHandler('onResourceStart', function(resource)
 end)
 
 CreateThread(function()
-    if LocalPlayer.state['isLoggedIn'] then
+    if LocalPlayer.state['isLoggedIn'] and not Started then
         CreateThread(DoorLoop)
     end
 end)
