@@ -1,3 +1,5 @@
+local QBCore = exports['qb-core']:GetCoreObject()
+
 RegisterServerEvent('nui_doorlock:server:updateState')
 AddEventHandler('nui_doorlock:server:updateState', function(doorID, locked, src, usedLockpick, isScript)
     local playerId = source
@@ -17,7 +19,7 @@ AddEventHandler('nui_doorlock:server:updateState', function(doorID, locked, src,
         print(('nui_doorlock: %s (%s) attempted to update invalid door! (Sent %s)'):format(xPlayer.PlayerData.name, xPlayer.PlayerData.license, doorID))
         return
     end
-    
+
     if not IsAuthorized(xPlayer, Config.DoorList[doorID], usedLockpick, isScript) then
         return
     end
@@ -41,7 +43,7 @@ end)
 
 function IsAuthorized(xPlayer, doorID, usedLockpick, isScript)
     if isScript then return true end
-    
+
     if doorID.lockpick and usedLockpick then
         return true
     end
@@ -53,7 +55,7 @@ function IsAuthorized(xPlayer, doorID, usedLockpick, isScript)
             end
         end
     end
-	
+
     if doorID.authorizedGangs then
         for job, rank in pairs(doorID.authorizedGangs) do
             if (job == xPlayer.PlayerData.gang.name and rank <= xPlayer.PlayerData.gang.grade.level) then
@@ -122,7 +124,7 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
     doorLocked = tostring(doorLocked)
     slides = tostring(slides)
     garage = tostring(garage)
-    local newDoor = {}
+    local newDoor, auth = {}
     if jobs[1] then auth = tostring("['"..jobs[1].."']=0") end
     if jobs[2] then auth = auth..', '..tostring("['"..jobs[2].."']=0") end
     if jobs[3] then auth = auth..', '..tostring("['"..jobs[3].."']=0") end
@@ -145,10 +147,10 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
             {objHash = model[2], objHeading = heading[2], objCoords = coords[2]}
         }
     end
-        newDoor.audioRemote = false
-        newDoor.lockpick = false
+    newDoor.audioRemote = false
+    newDoor.lockpick = false
     local path = GetResourcePath(GetCurrentResourceName())
-    
+
     if config ~= '' then
         path = path:gsub('//', '/')..'/configs/'..string.gsub(config, ".lua", "")..'.lua'
     else
@@ -156,7 +158,8 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
     end
 
 
-    file = io.open(path, 'a+')
+    local file = io.open(path, 'a+')
+    local label
     if not doorname then label = '\n\n-- UNNAMED DOOR CREATED BY '..xPlayer.PlayerData.name..'\ntable.insert(Config.DoorList, {'
     else
         label = '\n\n-- '..doorname.. '\ntable.insert(Config.DoorList, {'
@@ -191,7 +194,7 @@ AddEventHandler('nui_doorlock:newDoorCreate', function(config, model, heading, c
     file:close()
     local doorID = #Config.DoorList + 1
     newDoor.doorID = doorID
-    
+
     if jobs[4] then newDoor.authorizedJobs = { [jobs[1]] = 0, [jobs[2]] = 0, [jobs[3]] = 0, [jobs[4]] = 0 }
     elseif jobs[3] then newDoor.authorizedJobs = { [jobs[1]] = 0, [jobs[2]] = 0, [jobs[3]] = 0 }
     elseif jobs[2] then newDoor.authorizedJobs = { [jobs[1]] = 0, [jobs[2]] = 0 }
