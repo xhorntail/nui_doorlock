@@ -195,9 +195,9 @@ local DoorLoop = function()
                                 if closestDoor.data.locked and not canOpen and doorState ~= 1 then
                                     Draw3dNUI('Locking')
                                 elseif not closestDoor.data.locked and not canOpen then
-                                    if Config.ShowUnlockedText then Draw3dNUI('Unlocked') else SendNUIMessage ({type = "hide"}) end
+                                    if Config.ShowUnlockedText then Draw3dNUI('Unlocked') else SendNUIMessage({type = "hide"}) end
                                 elseif not closestDoor.data.locked and canOpen then
-                                    if Config.ShowUnlockedText then Draw3dNUI('[E] - Unlocked') else ({type = "hide"}) end
+                                    if Config.ShowUnlockedText then Draw3dNUI('[E] - Unlocked') else SendNUIMessage({type = "hide"}) end
                                 elseif closestDoor.data.locked and not canOpen then
                                     Draw3dNUI('Locked')
                                 elseif closestDoor.data.locked and canOpen then
@@ -214,9 +214,9 @@ local DoorLoop = function()
                                 if closestDoor.data.locked and (state[1] ~= 1 or state[2] ~= 1) then
                                     Draw3dNUI('Locking')
                                 elseif not closestDoor.data.locked and not canOpen then
-                                    if Config.ShowUnlockedText then Draw3dNUI('Unlocked') else SendNUIMessage ({type = "hide"}) end
+                                    if Config.ShowUnlockedText then Draw3dNUI('Unlocked') else SendNUIMessage({type = "hide"}) end
                                 elseif not closestDoor.data.locked and canOpen then
-                                    if Config.ShowUnlockedText then Draw3dNUI('[E] - Unlocked') else SendNUIMessage ({type = "hide"}) end
+                                    if Config.ShowUnlockedText then Draw3dNUI('[E] - Unlocked') else SendNUIMessage({type = "hide"}) end
                                 elseif closestDoor.data.locked and not canOpen then
                                     Draw3dNUI('Locked')
                                 elseif closestDoor.data.locked and canOpen then
