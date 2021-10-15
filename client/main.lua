@@ -481,7 +481,7 @@ RegisterNetEvent('nui_doorlock:newDoorSetup', function(args)
         receivedDoorData = false
         SetNuiFocus(true, true)
         SendNUIMessage({type = "newDoorSetup", enable = true})
-        while not receivedDoorData do Wait(0) DisableAllControlActions(0) end
+        while receivedDoorData == false do Wait(0) DisableAllControlActions(0) end
     end
     if arg then doorType = arg.doortype else doorType = args[1] end
     if arg then doorLocked = arg.doorlocked else doorLocked = not not args[2] end
